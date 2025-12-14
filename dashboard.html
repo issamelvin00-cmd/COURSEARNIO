@@ -1012,7 +1012,7 @@
                 document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
 
                 // Referral link
-                const refCode = data.user.referral_code || data.user.id;
+                const refCode = data.user.referralCode || 'unknown';
                 document.getElementById('referralLink').textContent = `${window.location.origin}/signup.html?ref=${refCode}`;
 
                 // Admin nav

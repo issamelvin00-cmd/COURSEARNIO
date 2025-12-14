@@ -171,7 +171,7 @@
                 document.getElementById('earnedFromRef').textContent = (referrals.length * 50).toLocaleString();
 
                 // Referral link
-                const refCode = data.user.referral_code || data.user.id;
+                const refCode = data.user.referralCode || 'unknown';
                 document.getElementById('referralLink').textContent = `${window.location.origin}/signup.html?ref=${refCode}`;
 
                 // Referrals list
