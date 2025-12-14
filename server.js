@@ -1706,6 +1706,76 @@ app.get('/admin/courses', authenticateToken, requireAdmin, async (req, res) => {
     }
 });
 
+// Admin: Create course
+app.post('/admin/courses', authenticateToken, requireAdmin, async (req, res) => {
+    const { title, short_description, description, thumbnail_url, price, category } = req.body;
+
+    if (!title || !price) {
+        return res.status(400).json({ message: 'Title and price are required' });
+    }
+
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('courses')
+            .insert({
+                title,
+                description: description || '',
+                short_description: short_description || '',
+                thumbnail_url: thumbnail_url || null,
+                price: parseInt(price),
+                is_published: false,
+                created_by: req.user.id,
+                category: category || 'other'
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Course creation error:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        res.json({ success: true, course: data });
+
+    } catch (err) {
+        console.error('Admin course create error:', err);
+        res.status(500).json({ error: 'Failed to create course' });
+    }
+});
+
+// Admin: Update course
+app.put('/admin/courses/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const courseId = req.params.id;
+    const { title, short_description, description, thumbnail_url, price, category } = req.body;
+
+    try {
+        const updates = {};
+        if (title !== undefined) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (short_description !== undefined) updates.short_description = short_description;
+        if (thumbnail_url !== undefined) updates.thumbnail_url = thumbnail_url;
+        if (price !== undefined) updates.price = parseInt(price);
+        if (category !== undefined) updates.category = category;
+        updates.updated_at = new Date().toISOString();
+
+        const { error } = await supabaseAdmin
+            .from('courses')
+            .update(updates)
+            .eq('id', courseId);
+
+        if (error) {
+            console.error('Course update error:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error('Admin course update error:', err);
+        res.status(500).json({ error: 'Failed to update course' });
+    }
+});
+
 app.get('/admin/data', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { data: users } = await supabaseAdmin
