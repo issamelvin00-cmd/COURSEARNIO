@@ -1983,6 +1983,7 @@ app.get('/admin/tasks', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // Admin: Create task
+// Admin: Create task
 app.post('/admin/tasks', authenticateToken, requireAdmin, async (req, res) => {
     const { title, description, reward_kes, task_type, url, daily_limit } = req.body;
 
@@ -1991,15 +1992,22 @@ app.post('/admin/tasks', authenticateToken, requireAdmin, async (req, res) => {
     }
 
     try {
+        const reward = parseInt(reward_kes);
+        const limit = parseInt(daily_limit);
+
+        if (isNaN(reward)) {
+            return res.status(400).json({ message: 'Invalid reward amount' });
+        }
+
         const { data, error } = await supabaseAdmin
             .from('admin_tasks')
             .insert({
                 title,
                 description: description || '',
-                reward_kes: parseInt(reward_kes),
+                reward_kes: reward,
                 task_type: task_type || 'general',
                 url: url || null,
-                daily_limit: daily_limit || 1,
+                daily_limit: isNaN(limit) ? 1 : limit,
                 is_active: true
             })
             .select()
