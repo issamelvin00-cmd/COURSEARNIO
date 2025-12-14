@@ -1258,15 +1258,10 @@ app.get('/chapters/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Chapter not found' });
         }
 
-        // Check if user owns the course
-        const { data: purchase } = await supabaseAdmin
-            .from('course_purchases')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('course_id', chapter.course_id)
-            .single();
+        // Check course access (handles admins and purchases)
+        const hasAccess = await userOwnsCourse(userId, chapter.course_id);
 
-        if (!purchase) {
+        if (!hasAccess) {
             return res.status(403).json({ error: 'Purchase required' });
         }
 
