@@ -207,7 +207,7 @@
                 }
 
                 html += courses.map(course => `
-                    <div class="my-course-card" onclick="window.location.href='course-player.html?id=${course.id}'">
+                    <div class="my-course-card" onclick="window.location.href='course-reader.html?id=${course.id}'">
                         <h3 style="margin-bottom: 8px; font-size: 1.1rem;">${course.title}</h3>
                         <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 12px;">
                             ${course.total_lessons} lessons • Purchased ${new Date(course.purchased_at).toLocaleDateString()}

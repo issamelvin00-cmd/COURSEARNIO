@@ -993,15 +993,24 @@
                 });
 
                 if (!res.ok) {
-                    if (res.status === 401 || res.status === 403) {
+                    if (res.status === 401) {
                         localStorage.removeItem('token');
                         window.location.href = 'login.html';
                         return;
                     }
+                    // If not 401, still throw an error or handle differently
                     throw new Error('Failed to load data');
                 }
-
                 const data = await res.json();
+
+                // RESTRICT FREE USERS
+                if (!data.user.isPaid) {
+                    window.location.href = 'pay_new.html';
+                    return;
+                }
+
+                // Header Info
+                const greeting = document.getElementById('userGreeting');
 
                 // Update balance
                 document.getElementById('balance').textContent = data.wallet.balanceKES.toLocaleString();

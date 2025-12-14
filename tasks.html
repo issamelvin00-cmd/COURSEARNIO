@@ -81,7 +81,7 @@
         </div>
 
         <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 0.95rem;">
-            Complete tasks to earn money instantly. New tasks added regularly!
+            Complete tasks to earn money. <strong>Payouts on tasks will be made weekly.</strong>
         </p>
 
         <!-- TASKS LIST -->
@@ -179,7 +179,10 @@
                             <div style="color: var(--neon); font-weight: 700; margin-bottom: 6px;">+KES ${task.reward}</div>
                             ${task.completed ?
                         '<span class="status-badge success"><i class="fas fa-check"></i> Done</span>' :
-                        `<button class="list-action" onclick="completeTask('${task.id}', '${task.action_url || ''}')">Start</button>`
+                        (task.status === 'pending' ?
+                            '<span class="status-badge pending"><i class="fas fa-clock"></i> Pending</span>' :
+                            `<button class="list-action" onclick="completeTask('${task.id}', '${task.action_url || ''}')">Start</button>`
+                        )
                     }
                         </div>
                     </div>
@@ -221,6 +224,7 @@
                 const data = await res.json();
 
                 if (data.success) {
+                    alert(data.message || 'Task submitted! Waiting for approval.');
                     loadTasks();
                 } else {
                     alert(data.message || 'Failed to complete task');

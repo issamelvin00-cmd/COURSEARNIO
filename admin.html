@@ -510,6 +510,7 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('withdrawals')">Withdrawals</button>
             <button class="tab" onclick="switchTab('tasks')">Tasks</button>
+            <button class="tab" onclick="switchTab('submissions')">Submissions</button>
             <button class="tab" onclick="switchTab('users')">Users</button>
         </div>
 
@@ -570,6 +571,32 @@
                     <tbody id="tasksTable">
                         <tr>
                             <td colspan="6" class="empty-state"><i class="fas fa-tasks"></i><br>Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Task Submissions Tab -->
+        <div id="submissions-tab" class="tab-content" style="display: none;">
+            <div class="card-section">
+                <div class="card-header">
+                    <h3>Pending Task Submissions</h3>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Task</th>
+                            <th>Proof</th>
+                            <th>Reward</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissionsTable">
+                        <tr>
+                            <td colspan="6" class="empty-state"><i class="fas fa-search"></i><br>Loading...</td>
                         </tr>
                     </tbody>
                 </table>

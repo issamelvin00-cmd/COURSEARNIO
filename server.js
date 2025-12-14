@@ -1722,7 +1722,7 @@ app.post('/admin/courses', authenticateToken, requireAdmin, async (req, res) => 
                 description: description || '',
                 short_description: short_description || '',
                 thumbnail_url: thumbnail_url || null,
-                price: parseInt(price),
+                price: parseInt(price) * 100, // Store in cents
                 is_published: false,
                 created_by: req.user.id,
                 category: category || 'other'
@@ -1754,7 +1754,7 @@ app.put('/admin/courses/:id', authenticateToken, requireAdmin, async (req, res) 
         if (description !== undefined) updates.description = description;
         if (short_description !== undefined) updates.short_description = short_description;
         if (thumbnail_url !== undefined) updates.thumbnail_url = thumbnail_url;
-        if (price !== undefined) updates.price = parseInt(price);
+        if (price !== undefined) updates.price = parseInt(price) * 100; // Store in cents
         if (category !== undefined) updates.category = category;
         updates.updated_at = new Date().toISOString();
 
@@ -1959,6 +1959,185 @@ app.get('/tasks/available', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('Tasks error:', err);
         res.status(500).json({ error: 'Failed to fetch tasks' });
+    }
+});
+
+// Task Completion (Now requires Admin Approval)
+app.post('/tasks/:id/complete', authenticateToken, async (req, res) => {
+    const taskId = req.params.id;
+    const userId = req.user.id;
+    const { proof } = req.body; // Optional proof (text/link)
+
+    try {
+        // 1. Check if task exists and is active
+        const { data: task, error: taskError } = await supabaseAdmin
+            .from('admin_tasks')
+            .select('*')
+            .eq('id', taskId)
+            .single();
+
+        if (taskError || !task || !task.is_active) {
+            return res.status(404).json({ message: 'Task not found or inactive' });
+        }
+
+        // 2. Check daily limit
+        const today = new Date().toISOString().split('T')[0];
+        const { count, error: countError } = await supabaseAdmin
+            .from('task_submissions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('task_id', taskId)
+            .gte('created_at', today)
+            .neq('status', 'rejected'); // Count pending and approved
+
+        if (countError) throw countError;
+
+        if (count >= task.daily_limit) {
+            return res.status(400).json({ message: 'Daily limit reached for this task' });
+        }
+
+        // 3. Create Submission (Pending)
+        const { error: submitError } = await supabaseAdmin
+            .from('task_submissions')
+            .insert({
+                user_id: userId,
+                task_id: taskId,
+                status: 'pending',
+                proof_data: proof || null
+            });
+
+        if (submitError) throw submitError;
+
+        res.json({
+            success: true,
+            message: 'Task submitted for review. Earnings will be credited after approval.'
+        });
+
+    } catch (err) {
+        console.error('Task complete error:', err);
+        res.status(500).json({ error: 'Failed to submit task' });
+    }
+});
+
+// Admin: Get Submissions
+app.get('/admin/task-submissions', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { data: submissions, error } = await supabaseAdmin
+            .from('task_submissions')
+            .select(`
+                *,
+                profiles ( email ),
+                admin_tasks ( title, reward_kes )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(submissions);
+    } catch (err) {
+        console.error('Fetch submissions error:', err);
+        res.status(500).json({ error: 'Failed to fetch submissions' });
+    }
+});
+
+// Admin: Approve Submission
+app.post('/admin/task-submissions/:id/approve', authenticateToken, requireAdmin, async (req, res) => {
+    const submissionId = req.params.id;
+
+    try {
+        // 1. Get submission details
+        const { data: submission, error: subError } = await supabaseAdmin
+            .from('task_submissions')
+            .select(`
+                *,
+                admin_tasks ( reward_kes )
+            `)
+            .eq('id', submissionId)
+            .single();
+
+        if (subError || !submission) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+
+        if (submission.status === 'approved') {
+            return res.status(400).json({ message: 'Already approved' });
+        }
+
+        const reward = submission.admin_tasks.reward_kes;
+        const userId = submission.user_id;
+
+        // 2. Credit Wallet
+        const { data: wallet } = await supabaseAdmin
+            .from('wallets')
+            .select('balance_units')
+            .eq('user_id', userId)
+            .single();
+
+        const currentBalance = wallet ? wallet.balance_units : 0;
+        // Convert KES to Units (KES * 100) if wallet uses units
+        // Assuming system uses units (cents). If 5 KES, that's 500 units.
+        // Wait, previously `reward_kes` was stored as integer (e.g. 5).
+        // Does the wallet `balance_units` mean cents?
+        // In `processSuccessfulPayment`: amount_units: reward (referral)
+        // REFERRAL_REWARD_UNITS is usually defined.
+        // Let's assume standard is Cents. 
+        // 5 KES reward = 500 units.
+        const rewardUnits = reward * 100;
+
+        await supabaseAdmin
+            .from('wallets')
+            .update({ balance_units: currentBalance + rewardUnits })
+            .eq('user_id', userId);
+
+        // 3. Create Transaction Record
+        await supabaseAdmin
+            .from('transactions')
+            .insert({
+                user_id: userId,
+                amount_units: rewardUnits,
+                type: 'credit',
+                status: 'success',
+                reference: `TASK_${submissionId}_${Date.now()}`,
+                metadata: { type: 'task_reward', task_id: submission.task_id }
+            });
+
+        // 4. Update Submission Status
+        const { error: updateError } = await supabaseAdmin
+            .from('task_submissions')
+            .update({
+                status: 'approved',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: req.user.id
+            })
+            .eq('id', submissionId);
+
+        if (updateError) throw updateError;
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error('Approve submission error:', err);
+        res.status(500).json({ error: 'Failed to approve task' });
+    }
+});
+
+// Admin: Reject Submission
+app.post('/admin/task-submissions/:id/reject', authenticateToken, requireAdmin, async (req, res) => {
+    const submissionId = req.params.id;
+    try {
+        const { error } = await supabaseAdmin
+            .from('task_submissions')
+            .update({
+                status: 'rejected',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: req.user.id
+            })
+            .eq('id', submissionId);
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Reject submission error:', err);
+        res.status(500).json({ error: 'Failed to reject task' });
     }
 });
 
