@@ -155,8 +155,9 @@
 
                 const data = await res.json();
                 const container = document.getElementById('tasksList');
+                const tasks = Array.isArray(data) ? data : (data.tasks || []);
 
-                if (!data.tasks || data.tasks.length === 0) {
+                if (tasks.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-bolt"></i>
@@ -166,7 +167,8 @@
                     return;
                 }
 
-                container.innerHTML = data.tasks.map(task => `
+                // Use 'tasks' variable for mapping
+                container.innerHTML = tasks.map(task => `
                     <div class="list-item" id="task-${task.id}">
                         <div class="list-icon">
                             <i class="fas ${getTaskIcon(task.type)}"></i>
