@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="luxury-theme.css">
+</head>
+
+<body>
+
+    <!-- MOBILE TOGGLE -->
+    <div class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span class="brand-text">Earnio</span>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="team.html">
+                    <i class="fas fa-users"></i> Referrals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tasks.html" class="active">
+                    <i class="fas fa-bolt"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="profile.html">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+
+            <li class="nav-item admin-nav" id="adminNavItem" style="display: none;">
+                <a href="admin.html">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section">
+            <div class="user-avatar" id="userAvatar">E</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarEmail">Loading...</div>
+                <div class="user-status" id="sidebarStatus">Checking...</div>
+            </div>
+            <div class="logout-btn" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <div class="greeting">Complete tasks to earn ⚡</div>
+            <div class="page-title">Daily Tasks</div>
+        </div>
+
+        <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 0.95rem;">
+            Complete tasks to earn money instantly. New tasks added regularly!
+        </p>
+
+        <!-- TASKS LIST -->
+        <div id="tasksList">
+            <div class="empty-state">
+                <i class="fas fa-bolt"></i>
+                <p>Loading tasks...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                document.addEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        function closeSidebarOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                document.removeEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        async function loadUserData() {
+            try {
+                const res = await fetch('/dashboard/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed');
+                }
+
+                const data = await res.json();
+
+                document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
+                document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
+                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                if (data.user.isAdmin) {
+                    document.getElementById('adminNavItem').style.display = 'block';
+                }
+
+            } catch (err) {
+                console.error('Load error:', err);
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const res = await fetch('/tasks/available', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Failed');
+
+                const data = await res.json();
+                const container = document.getElementById('tasksList');
+
+                if (!data.tasks || data.tasks.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-bolt"></i>
+                            <p>No tasks available right now. Check back later!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.tasks.map(task => `
+                    <div class="list-item" id="task-${task.id}">
+                        <div class="list-icon">
+                            <i class="fas ${getTaskIcon(task.type)}"></i>
+                        </div>
+                        <div class="list-content">
+                            <div class="list-title">${task.title}</div>
+                            <div class="list-subtitle">${task.description || 'Complete to earn reward'}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: var(--neon); font-weight: 700; margin-bottom: 6px;">+KES ${task.reward}</div>
+                            ${task.completed ?
+                        '<span class="status-badge success"><i class="fas fa-check"></i> Done</span>' :
+                        `<button class="list-action" onclick="completeTask('${task.id}', '${task.action_url || ''}')">Start</button>`
+                    }
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error('Tasks error:', err);
+                document.getElementById('tasksList').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load tasks. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function getTaskIcon(type) {
+            const icons = {
+                'social': 'fa-share-alt',
+                'video': 'fa-play-circle',
+                'survey': 'fa-clipboard-list',
+                'referral': 'fa-user-plus',
+                'download': 'fa-download'
+            };
+            return icons[type] || 'fa-tasks';
+        }
+
+        async function completeTask(taskId, actionUrl) {
+            if (actionUrl) {
+                window.open(actionUrl, '_blank');
+            }
+
+            try {
+                const res = await fetch(`/tasks/${taskId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    loadTasks();
+                } else {
+                    alert(data.message || 'Failed to complete task');
+                }
+            } catch (err) {
+                console.error('Complete task error:', err);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        loadUserData();
+        loadTasks();
+    </script>
+</body>
+
+</html>

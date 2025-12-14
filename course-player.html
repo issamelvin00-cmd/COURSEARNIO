@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Player - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .player-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: calc(100vh - 100px);
+        }
+
+        .video-section {
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-player {
+            flex: 1;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .video-controls {
+            padding: 20px;
+            background: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .lesson-list {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .playlist-item {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .playlist-item:hover {
+            background: rgba(57, 255, 20, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .playlist-item.active {
+            background: rgba(57, 255, 20, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .playlist-item.completed {
+            opacity: 0.7;
+        }
+
+        @media(max-width: 968px) {
+            .player-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="brand"><i class="fas fa-coins"></i> Earnio</div>
+        <ul class="nav-links">
+            <li class="nav-item"><a href="dashboard.html"><i class="fas fa-wallet"></i> Wallet</a></li>
+            <li class="nav-item"><a href="courses.html" class="active"><i class="fas fa-graduation-cap"></i> Courses</a>
+            </li>
+            <li class="nav-item"><a href="profile.html"><i class="fas fa-user-circle"></i> Profile</a></li>
+        </ul>
+        <div class="user-mini">
+            <div class="user-avatar">U</div>
+            <div class="user-info">
+                <div id="sidebarEmail">User</div>
+            </div>
+            <div onclick="logout()" style="margin-left: auto; cursor: pointer; color: #ff3333;"><i
+                    class="fas fa-sign-out-alt"></i></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <a href="courses.html" style="color: var(--text-secondary); margin-right: 20px;"><i
+                    class="fas fa-arrow-left"></i> Back</a>
+            <div class="page-title" id="courseTitle">Course Player</div>
+        </div>
+
+        <div class="player-container">
+            <div class="video-section">
+                <div class="video-player" id="videoPlayer">
+                    <div style="text-align: center; color: var(--text-secondary);">
+                        <i class="fas fa-play-circle" style="font-size: 4rem; color: var(--primary-color);"></i>
+                        <div style="margin-top: 20px;">Select a lesson to start</div>
+                    </div>
+                </div>
+                <div class="video-controls">
+                    <h3 id="lessonTitle">No lesson selected</h3>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button onclick="markComplete()"
+                            style="flex: 1; padding: 12px; background: var(--primary-color); color: black; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            Mark Complete <i class="fas fa-check"></i>
+                        </button>
+                        <button onclick="nextLesson()"
+                            style="padding: 12px 20px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lesson-list">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-list"></i> Lessons
+                </h3>
+                <div id="lessonsList">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('id');
+        if (!courseId) window.location.href = 'courses.html';
+
+        let courseData = null;
+        let currentLessonIndex = 0;
+        let lessonProgress = {};
+
+        async function loadCourse() {
+            try {
+                // Check access first
+                const accessRes = await fetch(`/courses/${courseId}/access`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const accessData = await accessRes.json();
+                if (!accessData.hasAccess) {
+                    alert('You dont own this course!');
+                    window.location.href = 'courses.html';
+                    return;
+                }
+
+                // Load course
+                const res = await fetch(`/courses/${courseId}`);
+                courseData = await res.json();
+
+                document.getElementById('courseTitle').textContent = courseData.title;
+
+                // Render playlist
+                document.getElementById('lessonsList').innerHTML = courseData.lessons.map((lesson, i) => `
+                    <div class="playlist-item ${i === 0 ? 'active' : ''}" onclick="playLesson(${i})">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; background: rgba(57,255,20,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-weight: 700;">
+                                ${i + 1}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${lesson.title}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">${lesson.duration_minutes}min</div>
+                            </div>
+                            <i class="fas fa-check-circle" style="display: none; color: var(--primary-color);"></i>
+                        </div>
+                    </div>
+                `).join('');
+
+                playLesson(0);
+            } catch (err) {
+                console.error(err);
+                alert('Failed to load course');
+            }
+        }
+
+        function playLesson(index) {
+            currentLessonIndex = index;
+            const lesson = courseData.lessons[index];
+
+            document.getElementById('lessonTitle').textContent = lesson.title;
+            document.getElementById('videoPlayer').innerHTML = lesson.video_url
+                ? `<iframe width="100%" height="100%" src="${lesson.video_url}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+                : `<div style="text-align: center; color: var(--text-secondary);"><i class="fas fa-video-slash" style="font-size: 3rem;"></i><br><br>No video available for this lesson</div>`;
+
+            // Update active state
+            document.querySelectorAll('.playlist-item').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+        }
+
+        async function markComplete() {
+            const lesson = courseData.lessons[currentLessonIndex];
+            try {
+                await fetch(`/lessons/${lesson.id}/progress`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ completed: true, watched_seconds: lesson.duration_minutes * 60 })
+                });
+
+                document.querySelectorAll('.playlist-item')[currentLessonIndex].classList.add('completed');
+                document.querySelectorAll('.playlist-item .fa-check-circle')[currentLessonIndex].style.display = 'block';
+
+                alert('Lesson marked as complete!');
+                nextLesson();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to save progress');
+            }
+        }
+
+        function nextLesson() {
+            if (currentLessonIndex < courseData.lessons.length - 1) {
+                playLesson(currentLessonIndex + 1);
+            } else {
+                alert('Course completed! 🎉');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        loadCourse();
+    </script>
+</body>
+
+</html>

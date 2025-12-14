@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="luxury-theme.css">
+</head>
+
+<body>
+
+    <!-- MOBILE TOGGLE -->
+    <div class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span class="brand-text">Earnio</span>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="team.html">
+                    <i class="fas fa-users"></i> Referrals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tasks.html">
+                    <i class="fas fa-bolt"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="profile.html" class="active">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+
+            <li class="nav-item admin-nav" id="adminNavItem" style="display: none;">
+                <a href="admin.html">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section">
+            <div class="user-avatar" id="userAvatar">E</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarEmail">Loading...</div>
+                <div class="user-status" id="sidebarStatus">Checking...</div>
+            </div>
+            <div class="logout-btn" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <div class="greeting">Manage your account 👤</div>
+            <div class="page-title">Profile</div>
+        </div>
+
+        <!-- PROFILE INFO -->
+        <div class="card" style="max-width: 600px;">
+            <div class="section-label" style="margin-top: 0;">Account Information</div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="email" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number (M-Pesa)</label>
+                <input type="text" id="phone" placeholder="e.g. 0712345678">
+            </div>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" placeholder="Your full name">
+            </div>
+
+            <button class="btn-primary" onclick="saveProfile()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+
+        <!-- ACCOUNT STATUS -->
+        <div class="card" style="max-width: 600px;">
+            <div class="section-label" style="margin-top: 0;">Account Status</div>
+
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <div
+                    style="width: 56px; height: 56px; background: var(--neon-dim); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-crown" style="font-size: 1.4rem; color: var(--neon);"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 600; font-size: 1.1rem;" id="accountType">Loading...</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;" id="accountDesc">Checking status...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                document.addEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        function closeSidebarOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                document.removeEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch('/dashboard/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed');
+                }
+
+                const data = await res.json();
+
+                // Sidebar
+                document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
+                document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
+                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                if (data.user.isAdmin) {
+                    document.getElementById('adminNavItem').style.display = 'block';
+                }
+
+                // Form
+                document.getElementById('email').value = data.user.email;
+                document.getElementById('phone').value = data.user.phone || '';
+                document.getElementById('fullName').value = data.user.full_name || '';
+
+                // Account status
+                if (data.user.isPaid) {
+                    document.getElementById('accountType').textContent = 'Premium Member';
+                    document.getElementById('accountDesc').textContent = 'Full access to all features';
+                } else {
+                    document.getElementById('accountType').textContent = 'Free Account';
+                    document.getElementById('accountDesc').textContent = 'Upgrade to unlock all features';
+                }
+
+            } catch (err) {
+                console.error('Load error:', err);
+            }
+        }
+
+        async function saveProfile() {
+            const phone = document.getElementById('phone').value;
+            const fullName = document.getElementById('fullName').value;
+
+            try {
+                const res = await fetch('/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phone, full_name: fullName })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Profile updated successfully!');
+                } else {
+                    alert(data.message || 'Failed to update');
+                }
+            } catch (err) {
+                alert('Failed to save profile');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

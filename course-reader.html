@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Reader - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --surface-color: #141414;
+            --sidebar-bg: #0f0f0f;
+            --primary-color: #39FF14;
+            --primary-dim: rgba(57, 255, 20, 0.1);
+            --text-primary: #FAFAFA;
+            --text-secondary: #71717A;
+            --border-color: #27272A;
+            --sidebar-width: 320px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .reader-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .course-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .progress-bar {
+            margin-top: 16px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Chapter List */
+        .chapter-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .chapter-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 6px;
+        }
+
+        .chapter-item:hover {
+            background: var(--surface-color);
+        }
+
+        .chapter-item.active {
+            background: var(--primary-dim);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+        }
+
+        .chapter-num {
+            width: 28px;
+            height: 28px;
+            background: var(--surface-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .chapter-item.active .chapter-num {
+            background: var(--primary-color);
+            color: #000;
+        }
+
+        .chapter-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chapter-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chapter-category {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .content-header {
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 50;
+        }
+
+        .chapter-title-header {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 10px 16px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Reading Pane */
+        .reading-pane {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 32px 80px;
+        }
+
+        .chapter-heading {
+            margin-bottom: 32px;
+        }
+
+        .chapter-heading h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+
+        .chapter-heading .category {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 6px 12px;
+            background: var(--primary-dim);
+            color: var(--primary-color);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Content Styles */
+        .chapter-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #d4d4d8;
+            white-space: pre-line;
+            /* Preserves newlines from plain text */
+        }
+
+        .chapter-content h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 32px 0 16px;
+            color: var(--text-primary);
+        }
+
+        .chapter-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 24px 0 12px;
+            color: var(--text-primary);
+        }
+
+        .chapter-content p {
+            margin-bottom: 16px;
+        }
+
+        .chapter-content ul,
+        .chapter-content ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        .chapter-content li {
+            margin-bottom: 8px;
+        }
+
+        .chapter-content code {
+            background: var(--surface-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+
+        .chapter-content pre {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .chapter-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Loading & Error */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            color: var(--text-secondary);
+        }
+
+        .loading-state i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+        /* Mobile Toggle - Refined for better UX */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 200;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--surface-color), #1a1a1a);
+            border: 1px solid var(--primary-color);
+            border-radius: 10px;
+            color: var(--primary-color);
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(57, 255, 20, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .mobile-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(57, 255, 20, 0.25);
+        }
+
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 90;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 900px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
+            }
+
+            .mobile-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .sidebar.open+.mobile-overlay {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-header {
+                padding: 12px 16px;
+                padding-left: 60px;
+                gap: 12px;
+            }
+
+            .chapter-title-header {
+                font-size: 0.9rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 50%;
+            }
+
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+
+            .reading-pane {
+                padding: 24px 20px 100px;
+            }
+
+            .chapter-heading h1 {
+                font-size: 1.6rem;
+                line-height: 1.3;
+            }
+
+            .chapter-content {
+                font-size: 1.05rem;
+                line-height: 1.6;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reader-layout">
+        <!-- Mobile Toggle -->
+        <button class="mobile-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="courses.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Courses
+                </a>
+                <h2 class="course-title" id="courseTitle">Loading...</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0 of 0 chapters</div>
+            </div>
+            <div id="videoResources"
+                style="padding: 12px; border-bottom: 1px solid var(--border-color); display: none;">
+                <!-- Video links will be injected here -->
+            </div>
+            <div class="chapter-list" id="chapterList">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" onclick="toggleSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <span class="chapter-title-header" id="chapterTitleHeader">Select a chapter</span>
+                <div class="nav-buttons">
+                    <button class="nav-btn" id="prevBtn" onclick="prevChapter()" disabled>
+                        <i class="fas fa-chevron-left"></i> Prev
+                    </button>
+                    <button class="nav-btn" id="nextBtn" onclick="nextChapter()" disabled>
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="reading-pane" id="readingPane">
+                <div class="loading-state">
+                    <i class="fas fa-book-open"></i>
+                    <p>Select a chapter to start reading</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('id');
+        if (!courseId) window.location.href = 'courses.html';
+
+        let courseData = null;
+        let chapters = [];
+        let currentChapterIndex = 0;
+        let progress = { last_chapter_id: null, completed_chapters: [] };
+
+        async function init() {
+            try {
+                // Load course info
+                const courseRes = await fetch(`/courses/${courseId}`);
+                courseData = await courseRes.json();
+                document.getElementById('courseTitle').textContent = courseData.title;
+                document.title = `${courseData.title} - Earnio Reader`;
+
+                // Render Resources (Videos & Tools)
+                try {
+                    const resRes = await fetch(`/courses/${courseId}/resources`);
+                    const resources = await resRes.json();
+
+                    if (resources.length > 0) {
+                        const videoContainer = document.getElementById('videoResources');
+                        let html = '';
+
+                        const videos = resources.filter(r => r.type === 'video');
+                        const tools = resources.filter(r => r.type === 'tool');
+
+                        if (videos.length > 0) {
+                            html += '<div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Course Videos</div>';
+                            html += videos.map(v => `
+                                <a href="${v.url}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; color: #3B82F6; text-decoration: none; font-size: 0.85rem; margin-bottom: 6px; transition: all 0.2s;">
+                                    <i class="fas fa-video"></i> ${v.title}
+                                </a>
+                            `).join('');
+                        }
+
+                        if (tools.length > 0) {
+                            html += '<div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin: 12px 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Tools & Downloads</div>';
+                            html += tools.map(t => `
+                                <a href="${t.url}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; color: #10B981; text-decoration: none; font-size: 0.85rem; margin-bottom: 6px; transition: all 0.2s;">
+                                    <i class="fas fa-tools"></i> ${t.title}
+                                </a>
+                            `).join('');
+                        }
+
+                        if (html) {
+                            videoContainer.innerHTML = html;
+                            videoContainer.style.display = 'block';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Resource fetch error:', e);
+                }
+
+                // Load chapters
+                const chaptersRes = await fetch(`/courses/${courseId}/chapters`);
+                chapters = await chaptersRes.json();
+
+                // Load progress
+                try {
+                    const progressRes = await fetch(`/courses/${courseId}/progress`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    progress = await progressRes.json();
+                } catch (e) { }
+
+                renderChapterList();
+
+                // Load last viewed chapter or first
+                if (progress.last_chapter_id) {
+                    const idx = chapters.findIndex(c => c.id === progress.last_chapter_id);
+                    if (idx !== -1) {
+                        loadChapter(idx);
+                        return;
+                    }
+                }
+                if (chapters.length > 0) {
+                    loadChapter(0);
+                }
+            } catch (err) {
+                console.error('Init error:', err);
+                document.getElementById('readingPane').innerHTML = `
+                    <div class="loading-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff4444;"></i>
+                        <p>Failed to load course</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderChapterList() {
+            const list = document.getElementById('chapterList');
+
+            if (chapters.length === 0) {
+                list.innerHTML = '<div class="loading-state"><p>No chapters yet</p></div>';
+                return;
+            }
+
+            list.innerHTML = chapters.map((ch, i) => `
+                <div class="chapter-item ${i === currentChapterIndex ? 'active' : ''}" onclick="loadChapter(${i})">
+                    <div class="chapter-num">${i + 1}</div>
+                    <div class="chapter-info">
+                        <div class="chapter-name">${ch.title}</div>
+                        ${ch.category ? `<div class="chapter-category">${ch.category}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            updateProgress();
+        }
+
+        async function loadChapter(index) {
+            if (index < 0 || index >= chapters.length) return;
+
+            currentChapterIndex = index;
+            const chapter = chapters[index];
+
+            // Update sidebar
+            renderChapterList();
+            document.getElementById('chapterTitleHeader').textContent = chapter.title;
+
+            // Update nav buttons
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === chapters.length - 1;
+
+            // Show loading
+            document.getElementById('readingPane').innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            `;
+
+            // Close mobile sidebar
+            document.getElementById('sidebar').classList.remove('open');
+
+            try {
+                // Fetch chapter content
+                const res = await fetch(`/chapters/${chapter.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Access denied');
+                }
+
+                const data = await res.json();
+
+                // Render content
+                document.getElementById('readingPane').innerHTML = `
+                    <div class="chapter-heading">
+                        <h1>${data.title}</h1>
+                        ${data.category ? `<span class="category">${data.category}</span>` : ''}
+                    </div>
+                    <div class="chapter-content">
+                        ${data.content_html || '<p>No content available.</p>'}
+                    </div>
+                `;
+
+                // Save progress
+                fetch(`/chapters/${chapter.id}/progress`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+            } catch (err) {
+                console.error('Chapter load error:', err);
+                document.getElementById('readingPane').innerHTML = `
+                    <div class="loading-state">
+                        <i class="fas fa-lock" style="color: #ff4444;"></i>
+                        <p>Access denied. Please unlock this course first.</p>
+                        <a href="course-detail.html?id=${courseId}" style="color: var(--primary-color); margin-top: 16px;">
+                            Unlock Course
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        function prevChapter() {
+            if (currentChapterIndex > 0) {
+                loadChapter(currentChapterIndex - 1);
+            }
+        }
+
+        function nextChapter() {
+            if (currentChapterIndex < chapters.length - 1) {
+                loadChapter(currentChapterIndex + 1);
+            }
+        }
+
+        function updateProgress() {
+            const total = chapters.length;
+            const current = currentChapterIndex + 1;
+            const percent = total > 0 ? (current / total * 100) : 0;
+
+            document.getElementById('progressFill').style.width = `${percent}%`;
+            document.getElementById('progressText').textContent = `${current} of ${total} chapters`;
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevChapter();
+            if (e.key === 'ArrowRight') nextChapter();
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

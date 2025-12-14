@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Courses - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="luxury-theme.css">
+    <style>
+        .my-courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .my-course-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 22px;
+            padding: 28px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .my-course-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 28px;
+            right: 28px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            opacity: 0.2;
+        }
+
+        .my-course-card:hover {
+            border-color: rgba(0, 255, 102, 0.2);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon), #00CC52);
+            transition: width 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .my-courses-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MOBILE TOGGLE -->
+    <div class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span class="brand-text">Earnio</span>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="team.html">
+                    <i class="fas fa-users"></i> Referrals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tasks.html">
+                    <i class="fas fa-bolt"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html" class="active">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="profile.html">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+
+            <li class="nav-item admin-nav" id="adminNavItem" style="display: none;">
+                <a href="admin.html">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section">
+            <div class="user-avatar" id="userAvatar">E</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarEmail">Loading...</div>
+                <div class="user-status" id="sidebarStatus">Checking...</div>
+            </div>
+            <div class="logout-btn" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <div class="greeting">Continue learning 🎓</div>
+            <div class="page-title">My Courses</div>
+        </div>
+
+        <div id="myCourses" class="my-courses-grid">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading your courses...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                document.addEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        function closeSidebarOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                document.removeEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        async function loadMyCourses() {
+            try {
+                const res = await fetch('/my-courses', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const courses = await res.json();
+
+                const ordersRes = await fetch('/my-orders', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const orders = await ordersRes.json();
+                const pendingOrders = (orders || []).filter(o => o.status === 'pending');
+
+                const container = document.getElementById('myCourses');
+
+                if (courses.length === 0 && pendingOrders.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <i class="fas fa-book-open"></i>
+                            <p>No courses yet. Browse our catalog and start learning!</p>
+                            <a href="courses.html" class="btn-primary" style="margin-top: 16px;">Browse Courses</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+
+                if (pendingOrders.length > 0) {
+                    html += pendingOrders.map(order => `
+                        <div class="my-course-card" style="border-color: var(--neon);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h3 style="margin: 0; font-size: 1.1rem;">${order.courseTitle || 'Course'}</h3>
+                                <span class="status-badge pending"><i class="fas fa-clock"></i> Processing</span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+                                Payment received. Your course will be unlocked within 30 minutes.
+                            </p>
+                        </div>
+                    `).join('');
+                }
+
+                html += courses.map(course => `
+                    <div class="my-course-card" onclick="window.location.href='course-player.html?id=${course.id}'">
+                        <h3 style="margin-bottom: 8px; font-size: 1.1rem;">${course.title}</h3>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 12px;">
+                            ${course.total_lessons} lessons • Purchased ${new Date(course.purchased_at).toLocaleDateString()}
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${course.progress}%"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                            <span style="color: var(--neon); font-weight: 600; font-size: 0.9rem;">${course.progress}% Complete</span>
+                            <span style="color: var(--text-secondary); font-size: 0.8rem;">${course.completed_lessons}/${course.total_lessons} done</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('myCourses').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load courses</p></div>';
+            }
+        }
+
+        async function loadUserData() {
+            try {
+                const res = await fetch('/dashboard/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
+                document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
+                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                if (data.user.isAdmin) {
+                    document.getElementById('adminNavItem').style.display = 'block';
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        loadUserData();
+        loadMyCourses();
+    </script>
+</body>
+
+</html>

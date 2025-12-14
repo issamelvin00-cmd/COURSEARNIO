@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --surface-color: #0a0a0a;
+            --surface-hover: #141414;
+            --primary-color: #39FF14;
+            --primary-dim: rgba(57, 255, 20, 0.1);
+            --text-primary: #FAFAFA;
+            --text-secondary: #71717A;
+            --border-color: #27272A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header Bar */
+        .header-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        .header-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Main Content */
+        .page-content {
+            padding: 80px 20px 140px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Course Thumbnail */
+        .course-thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--surface-color);
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .course-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--surface-color), var(--surface-hover));
+        }
+
+        .thumbnail-placeholder i {
+            font-size: 4rem;
+            color: var(--primary-color);
+            opacity: 0.3;
+        }
+
+        /* Category Badge */
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--primary-dim);
+            color: var(--primary-color);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Course Info */
+        .course-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .course-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .course-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .course-meta i {
+            font-size: 0.85rem;
+        }
+
+        .course-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-header i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Learn Items */
+        .learn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .learn-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--surface-color);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .learn-item i {
+            color: var(--primary-color);
+            margin-top: 2px;
+        }
+
+        .learn-item span {
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        /* Lesson List */
+        .lesson-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .lesson-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            transition: all 0.2s;
+        }
+
+        .lesson-item:hover {
+            border-color: var(--primary-color);
+            background: var(--surface-hover);
+        }
+
+        .lesson-num {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-dim);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .lesson-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lesson-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lesson-duration {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .lesson-icon {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Sticky Bottom Bar */
+        .sticky-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 20px;
+            display: none;
+        }
+
+        .sticky-bar.visible {
+            display: block;
+        }
+
+        .sticky-inner {
+            max-width: 700px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .sticky-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .sticky-price small {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-unlock {
+            background: linear-gradient(135deg, var(--primary-color), #2ecc40);
+            color: #000;
+        }
+
+        .btn-unlock:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(57, 255, 20, 0.3);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #00d4ff, #0066cc);
+            color: #fff;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-action.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Owned Badge */
+        .owned-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            color: var(--primary-color);
+        }
+
+        /* Error */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .error-state i {
+            font-size: 4rem;
+            color: #ff4444;
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .page-content {
+                padding: 70px 16px 160px;
+            }
+
+            .course-title {
+                font-size: 1.4rem;
+            }
+
+            .course-thumbnail {
+                border-radius: 16px;
+            }
+
+            .sticky-inner {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .sticky-price {
+                align-self: flex-start;
+            }
+
+            .btn-action {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header-bar">
+        <a href="courses.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="header-title" id="headerTitle">Course Details</span>
+    </header>
+
+    <!-- Content -->
+    <main class="page-content" id="pageContent">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
+        </div>
+    </main>
+
+    <!-- Sticky Bar -->
+    <div class="sticky-bar" id="stickyBar">
+        <div class="sticky-inner">
+            <div class="sticky-price" id="stickyPrice">KES 0</div>
+            <button class="btn-action btn-unlock" id="actionBtn" onclick="handleAction()">
+                <i class="fas fa-lock"></i> Unlock Course
+            </button>
+        </div>
+    </div>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('id');
+        if (!courseId) window.location.href = 'courses.html';
+
+        let courseData = null;
+        let hasAccess = false;
+
+        async function loadCourse() {
+            try {
+                const [courseRes, accessRes] = await Promise.all([
+                    fetch(`/courses/${courseId}`),
+                    fetch(`/courses/${courseId}/access`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+
+                courseData = await courseRes.json();
+                const accessData = await accessRes.json();
+                hasAccess = accessData.hasAccess;
+
+                render();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('pageContent').innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>Failed to load course</h2>
+                        <p style="color: var(--text-secondary);">Please try again later</p>
+                    </div>
+                `;
+            }
+        }
+
+        function render() {
+            document.getElementById('headerTitle').textContent = courseData.title;
+            document.title = `${courseData.title} - Earnio`;
+
+            const priceKES = (courseData.price / 100).toLocaleString();
+            const lessons = courseData.lessons || [];
+
+            // What you'll learn
+            const learnItems = [
+                'Master core concepts and fundamentals',
+                'Build real-world projects step by step',
+                'Access premium resources and materials',
+                'Lifetime access with future updates'
+            ];
+
+            let html = `
+                <!-- Thumbnail -->
+                <div class="course-thumbnail">
+                    ${courseData.thumbnail_url
+                    ? `<img src="${courseData.thumbnail_url}" alt="${courseData.title}">`
+                    : `<div class="thumbnail-placeholder"><i class="fas fa-graduation-cap"></i></div>`
+                }
+                </div>
+
+                <!-- Status Badge -->
+                ${hasAccess
+                    ? `<div class="owned-badge" style="background: rgba(57, 255, 20, 0.2); border-color: var(--primary-color); color: var(--primary-color);"><i class="fas fa-lock-open"></i> Unlocked</div>`
+                    : (courseData.category ? `<div class="category-badge"><i class="fas fa-tag"></i> ${courseData.category}</div>` : '')
+                }
+
+                <!-- Title & Meta -->
+                <h1 class="course-title">${courseData.title}</h1>
+                <div class="course-meta">
+                    <span><i class="fas fa-play-circle"></i> ${lessons.length} lessons</span>
+                    ${courseData.duration_hours ? `<span><i class="fas fa-clock"></i> ${courseData.duration_hours}h</span>` : ''}
+                    <span><i class="fas fa-users"></i> ${courseData.purchase_count || 0} students</span>
+                </div>
+
+                ${courseData.description ? `<p class="course-description">${courseData.description}</p>` : ''}
+
+                <!-- What You'll Learn -->
+                <div class="section">
+                    <div class="section-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <h3>What you'll learn</h3>
+                    </div>
+                    <div class="learn-list">
+                        ${learnItems.map(item => `
+                            <div class="learn-item">
+                                <i class="fas fa-check"></i>
+                                <span>${item}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Lessons -->
+                ${lessons.length > 0 ? `
+                    <div class="section">
+                        <div class="section-header">
+                            <i class="fas fa-list"></i>
+                            <h3>Course content</h3>
+                        </div>
+                        <div class="lesson-list">
+                            ${lessons.map((lesson, i) => `
+                                <div class="lesson-item">
+                                    <div class="lesson-num">${i + 1}</div>
+                                    <div class="lesson-info">
+                                        <div class="lesson-title">${lesson.title}</div>
+                                        ${lesson.duration_minutes ? `<div class="lesson-duration">${lesson.duration_minutes} min</div>` : ''}
+                                    </div>
+                                    <i class="lesson-icon fas ${hasAccess ? 'fa-play-circle' : 'fa-lock'}"></i>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('pageContent').innerHTML = html;
+
+            // Update sticky bar
+            const stickyBar = document.getElementById('stickyBar');
+            const stickyPrice = document.getElementById('stickyPrice');
+            const actionBtn = document.getElementById('actionBtn');
+
+            stickyBar.classList.add('visible');
+
+            if (hasAccess) {
+                stickyPrice.innerHTML = '<small>Ready to learn</small>';
+                actionBtn.className = 'btn-action btn-start';
+                actionBtn.innerHTML = '<i class="fas fa-play"></i> Start Learning';
+            } else {
+                stickyPrice.innerHTML = `KES ${priceKES}`;
+                actionBtn.className = 'btn-action btn-unlock';
+                actionBtn.innerHTML = '<i class="fas fa-lock-open"></i> Unlock Now';
+            }
+        }
+
+        async function handleAction() {
+            if (hasAccess) {
+                window.location.href = `course-reader.html?id=${courseId}`;
+                return;
+            }
+
+            const btn = document.getElementById('actionBtn');
+            btn.classList.add('loading');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                const res = await fetch(`/courses/${courseId}/purchase`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (!data.reference) throw new Error(data.message || 'Payment failed');
+
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-lock-open"></i> Unlock Now';
+
+                const handler = PaystackPop.setup({
+                    key: data.key,
+                    email: localStorage.getItem('userEmail') || 'user@earnio.app',
+                    amount: data.amount,
+                    currency: 'KES',
+                    ref: data.reference,
+                    callback: function (response) {
+                        unlockCourse(data.reference, response.reference, data.amount);
+                    },
+                    onClose: function () {
+                        console.log('Payment cancelled');
+                    }
+                });
+                handler.openIframe();
+            } catch (err) {
+                console.error(err);
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-lock-open"></i> Unlock Now';
+                alert('Payment failed: ' + err.message);
+            }
+        }
+
+        async function unlockCourse(reference, paystackRef, amount) {
+            const btn = document.getElementById('actionBtn');
+            btn.classList.add('loading');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unlocking...';
+
+            try {
+                const res = await fetch(`/courses/${courseId}/unlock`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reference, paystackRef, amount })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    hasAccess = true;
+                    render();
+                    alert('🎉 Course unlocked! Start learning now.');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Payment received! Refreshing...');
+                location.reload();
+            }
+        }
+
+        loadCourse();
+    </script>
+</body>
+
+</html>

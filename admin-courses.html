@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Manager - Earnio Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: block;
+            padding: 0;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 48px;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* Course Card */
+        .course-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .course-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .course-card:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .course-card.unpublished {
+            opacity: 0.7;
+        }
+
+        .course-content {
+            padding: 24px;
+        }
+
+        .course-thumbnail {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background: var(--bg-color);
+        }
+
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .course-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .course-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .course-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-published {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+        }
+
+        .badge-draft {
+            background: rgba(161, 161, 170, 0.15);
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+        }
+
+        .btn-danger:hover {
+            background: #EF4444;
+            color: white;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 28px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .btn-cancel {
+            padding: 14px 28px;
+            background: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            flex: 1;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Image Upload */
+        .image-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-dim);
+        }
+
+        .image-upload-area.has-image {
+            padding: 0;
+            border: none;
+        }
+
+        .image-upload-area img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .image-upload-area input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .upload-text strong {
+            color: var(--primary-color);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <a href="admin.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Admin</a>
+                <div class="admin-title" style="margin-top: 12px;">
+                    <i class="fas fa-graduation-cap"></i>
+                    Course Manager
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="openCourseModal()">
+                <i class="fas fa-plus"></i> Create Course
+            </button>
+        </div>
+
+        <!-- Courses List -->
+        <div class="course-grid" id="coursesList">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Loading courses...</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div class="modal-overlay" id="courseModal">
+        <div class="modal">
+            <h2><i class="fas fa-book" style="color: var(--primary-color);"></i> <span id="modalTitle">Create
+                    Course</span></h2>
+            <form id="courseForm">
+                <input type="hidden" id="courseId">
+
+                <div class="form-group">
+                    <label>Course Title *</label>
+                    <input type="text" id="courseTitle" placeholder="e.g. AI Mastery Course" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Short Description *</label>
+                    <input type="text" id="courseShortDesc" placeholder="Brief summary (1-2 sentences)" maxlength="150"
+                        required>
+                    <small style="color: var(--text-secondary); font-size: 0.8rem;">Shown on course cards</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Long Description</label>
+                    <textarea id="courseDesc" placeholder="Detailed course description. What will students learn?"
+                        rows="4"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Price (KES) *</label>
+                        <input type="number" id="coursePrice" placeholder="500" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="courseCategory" required>
+                            <option value="">Select category</option>
+                            <option value="business">Business</option>
+                            <option value="technology">Technology</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="finance">Finance</option>
+                            <option value="design">Design</option>
+                            <option value="lifestyle">Lifestyle</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+
+
+                <div class="form-group">
+                    <label>Course Image</label>
+                    <div class="image-upload-area" id="thumbnailArea"
+                        onclick="document.getElementById('thumbnailInput').click()">
+                        <input type="file" id="thumbnailInput" accept="image/*" onchange="handleImageSelect(event)">
+                        <div id="thumbnailPreview">
+                            <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <div class="upload-text">Click to upload or <strong>drag and drop</strong></div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="courseThumbnail">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Save Course</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal('courseModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lesson Modal -->
+    <div class="modal-overlay" id="lessonModal">
+        <div class="modal">
+            <h2><i class="fas fa-play-circle" style="color: #3B82F6;"></i> Add Lesson</h2>
+            <form id="lessonForm">
+                <input type="hidden" id="lessonCourseId">
+
+                <div class="form-group">
+                    <label>Lesson Title *</label>
+                    <input type="text" id="lessonTitle" placeholder="e.g. Introduction to AI" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Video URL (YouTube embed, Vimeo, etc.)</label>
+                    <input type="text" id="lessonVideo" placeholder="https://www.youtube.com/embed/...">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Duration (minutes)</label>
+                        <input type="number" id="lessonDuration" placeholder="15" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Order (position)</label>
+                        <input type="number" id="lessonOrder" placeholder="1" min="0" value="0">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Add Lesson</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal('lessonModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chapter Modal -->
+    <div class="modal-overlay" id="chapterModal">
+        <div class="modal" style="max-width: 700px;">
+            <h2><i class="fas fa-file-alt" style="color: #8B5CF6;"></i> <span id="chapterModalTitle">Add Chapter</span>
+            </h2>
+            <form id="chapterForm">
+                <input type="hidden" id="chapterCourseId">
+                <input type="hidden" id="chapterId">
+
+                <div class="form-group">
+                    <label>Chapter Title *</label>
+                    <input type="text" id="chapterTitle" placeholder="e.g. Getting Started" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Category (optional)</label>
+                    <input type="text" id="chapterCategory" placeholder="e.g. Introduction, Basics, Advanced">
+                </div>
+
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea id="chapterContent" rows="12" placeholder="Paste your chapter content here.
+
+Newlines and paragraphs will be preserved automatically.
+You can still use HTML tags if needed, but plain text works great!"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Save Chapter</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal('chapterModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Crop Modal -->
+    <div class="modal-overlay" id="cropModal" style="z-index: 2000;">
+        <div class="modal" style="max-width: 800px; width: 90%;">
+            <h2><i class="fas fa-crop-alt" style="color: #3B82F6;"></i> Crop Image</h2>
+            <div
+                style="max-height: 500px; min-height: 300px; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                <img id="imageToCrop" src="" style="max-width: 100%; max-height: 500px; display: block;">
+            </div>
+            <div style="margin-top: 16px;">
+                <label
+                    style="display: block; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px;">Upload
+                    Progress</label>
+                <div class="progress-bar"
+                    style="height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+                    <div id="uploadProgress"
+                        style="width: 0%; height: 100%; background: #10B981; transition: width 0.3s;"></div>
+                </div>
+            </div>
+            <div class="form-actions" style="margin-top: 24px;">
+                <button type="button" class="btn-submit" onclick="cropAndUpload()">
+                    <i class="fas fa-cloud-upload-alt"></i> Crop & Upload
+                </button>
+                <button type="button" class="btn-cancel" onclick="closeModal('cropModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resources Modal -->
+    <div class="modal-overlay" id="resourcesModal">
+        <div class="modal" style="max-width: 600px;">
+            <h2><i class="fas fa-link" style="color: #3B82F6;"></i> <span id="resourcesModalTitle">Manage
+                    Resources</span></h2>
+
+            <div class="resource-section" style="margin-bottom: 24px;">
+                <h3 style="font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-video" style="color: var(--text-secondary);"></i> Course Videos
+                </h3>
+                <div id="videoList" style="margin-bottom: 12px;"></div>
+                <div class="add-resource-form"
+                    style="background: var(--surface-color); padding: 12px; border-radius: 8px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" id="newVideoTitle" placeholder="Video Title (e.g. Intro)" style="flex: 1;">
+                        <input type="text" id="newVideoUrl" placeholder="URL" style="flex: 2;">
+                    </div>
+                    <button type="button" class="btn-submit" onclick="addResource('video')"
+                        style="width: 100%; padding: 8px;">
+                        <i class="fas fa-plus"></i> Add Video
+                    </button>
+                </div>
+            </div>
+
+            <div class="resource-section">
+                <h3 style="font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-tools" style="color: var(--text-secondary);"></i> Tools & Downloads
+                </h3>
+                <div id="toolList" style="margin-bottom: 12px;"></div>
+                <div class="add-resource-form"
+                    style="background: var(--surface-color); padding: 12px; border-radius: 8px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" id="newToolTitle" placeholder="Tool Name (e.g. Figma)" style="flex: 1;">
+                        <input type="text" id="newToolUrl" placeholder="URL" style="flex: 2;">
+                    </div>
+                    <button type="button" class="btn-submit" onclick="addResource('tool')"
+                        style="width: 100%; padding: 8px;">
+                        <i class="fas fa-plus"></i> Add Tool
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 24px;">
+                <button type="button" class="btn-cancel" onclick="closeModal('resourcesModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="chaptersListModal">
+        <div class="modal" style="max-width: 600px;">
+            <h2><i class="fas fa-list" style="color: #8B5CF6;"></i> Manage Chapters</h2>
+            <div id="chaptersList" style="max-height: 400px; overflow-y: auto; margin: 20px 0;">
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-submit" onclick="openAddChapterModal()">
+                    <i class="fas fa-plus"></i> Add Chapter
+                </button>
+                <button type="button" class="btn-cancel" onclick="closeModal('chaptersListModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        let uploadedImageUrl = '';
+
+        // Load Courses
+        async function loadCourses() {
+            try {
+                const res = await fetch('/admin/courses', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 403) {
+                    alert('Access denied');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+
+                const courses = await res.json();
+                const container = document.getElementById('coursesList');
+
+                if (!courses || courses.length === 0) {
+                    container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-book-open"></i>
+                    <h3>No courses yet</h3>
+                    <p>Create your first course to get started!</p>
+                </div>
+            `;
+                    return;
+                }
+
+                container.innerHTML = courses.map(c => `
+            <div class="course-card ${c.is_published ? '' : 'unpublished'}">
+                ${c.thumbnail_url ? `<img src="${c.thumbnail_url}" class="course-thumbnail" alt="${c.title}">` : ''}
+                <div class="course-content">
+                    <div class="course-header">
+                        <div>
+                            <div class="course-title">${c.title}</div>
+                            <span class="badge ${c.is_published ? 'badge-published' : 'badge-draft'}">
+                                ${c.is_published ? 'Published' : 'Draft'}
+                            </span>
+                            ${c.category ? `<span class="badge" style="background: rgba(59,130,246,0.15); color: #3B82F6; margin-left: 8px;">${c.category}</span>` : ''}
+                        </div>
+                    </div>
+                    ${c.short_description ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">${c.short_description}</p>` : ''}
+                    <div class="course-meta">
+                        <span><i class="fas fa-play-circle"></i> ${c.lesson_count} lessons</span>
+                        <span><i class="fas fa-users"></i> ${c.purchase_count} students</span>
+                        <span><i class="fas fa-tag"></i> KES ${c.priceKES.toLocaleString()}</span>
+                    </div>
+                    <div class="course-actions">
+                        <button class="btn btn-primary" onclick="editCourse(${c.id}, '${(c.title || '').replace(/'/g, "\\'")}', '${(c.short_description || '').replace(/'/g, "\\'")}', '${(c.description || '').replace(/'/g, "\\'")}', '${c.thumbnail_url || ''}', ${c.priceKES}, '${c.category || ''}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6; border: 1px solid rgba(139, 92, 246, 0.3);" onclick="openChaptersModal(${c.id}, '${(c.title || '').replace(/'/g, "\\'")}')">
+                            <i class="fas fa-file-alt"></i> Chapters
+                        </button>
+                        <button class="btn" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.3);" onclick="openResourcesModal(${c.id}, '${(c.title || '').replace(/'/g, "\\'")}')">
+                            <i class="fas fa-link"></i> Resources
+                        </button>
+                        <button class="btn btn-secondary" onclick="openLessonModal(${c.id})">
+                            <i class="fas fa-plus"></i> Add Lesson
+                        </button>
+                        <button class="btn ${c.is_published ? 'btn-secondary' : 'btn-success'}" onclick="togglePublish(${c.id}, ${c.is_published})">
+                            <i class="fas ${c.is_published ? 'fa-eye-slash' : 'fa-check'}"></i>
+                            ${c.is_published ? 'Unpublish' : 'Publish'}
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteCourse(${c.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Modal handling
+        function openCourseModal() {
+            document.getElementById('courseForm').reset();
+            document.getElementById('courseId').value = '';
+            document.getElementById('courseThumbnail').value = '';
+            document.getElementById('modalTitle').textContent = 'Create Course';
+            document.getElementById('thumbnailPreview').innerHTML = `
+        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+        <div class="upload-text">Click to upload or <strong>drag and drop</strong></div>
+    `;
+            document.getElementById('thumbnailArea').classList.remove('has-image');
+            uploadedImageUrl = '';
+            document.getElementById('courseModal').classList.add('active');
+        }
+
+        function openLessonModal(courseId) {
+            document.getElementById('lessonForm').reset();
+            document.getElementById('lessonCourseId').value = courseId;
+            document.getElementById('lessonModal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Edit Course - populate form with existing data
+        function editCourse(id, title, shortDesc, description, thumbnailUrl, priceKES, category) {
+            document.getElementById('courseForm').reset();
+            document.getElementById('courseId').value = id;
+            document.getElementById('courseTitle').value = title;
+            document.getElementById('courseShortDesc').value = shortDesc || '';
+            document.getElementById('courseDesc').value = description || '';
+            document.getElementById('coursePrice').value = priceKES;
+            document.getElementById('courseCategory').value = category || '';
+            document.getElementById('courseThumbnail').value = thumbnailUrl;
+            document.getElementById('modalTitle').textContent = 'Edit Course';
+
+            if (thumbnailUrl) {
+                document.getElementById('thumbnailPreview').innerHTML = `<img src="${thumbnailUrl}" alt="Preview">`;
+                document.getElementById('thumbnailArea').classList.add('has-image');
+                uploadedImageUrl = thumbnailUrl;
+            } else {
+                document.getElementById('thumbnailPreview').innerHTML = `
+                    <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="upload-text">Click to upload or <strong>drag and drop</strong></div>
+                `;
+                document.getElementById('thumbnailArea').classList.remove('has-image');
+                uploadedImageUrl = '';
+            }
+
+            document.getElementById('courseModal').classList.add('active');
+        }
+
+        // Image Upload & Crop
+        let cropper = null;
+        let selectedFileFileName = '';
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedFileFileName = file.name;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('imageToCrop');
+                img.src = e.target.result;
+
+                document.getElementById('cropModal').classList.add('active');
+
+                // Initialize Cropper
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(img, {
+                    aspectRatio: 16 / 9,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+
+                // Reset progress
+                document.getElementById('uploadProgress').style.width = '0%';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function cropAndUpload() {
+            if (!cropper) return;
+
+            // Get cropped blob
+            cropper.getCroppedCanvas({
+                width: 1280, // standardized width
+                height: 720
+            }).toBlob(async (blob) => {
+                if (!blob) return alert('Crop failed');
+
+                // Convert blob to base64 for existing API (or use FormData if API changed, but keeping existing flow)
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    const base64 = reader.result;
+
+                    // Simulate progress
+                    const progressBar = document.getElementById('uploadProgress');
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += 10;
+                        if (progress > 90) clearInterval(interval);
+                        progressBar.style.width = `${progress}%`;
+                    }, 200);
+
+                    try {
+                        const res = await fetch('/admin/upload-image', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                imageData: base64,
+                                fileName: selectedFileFileName,
+                                folder: 'thumbnails'
+                            })
+                        });
+
+                        clearInterval(interval);
+                        progressBar.style.width = '100%';
+
+                        const data = await res.json();
+                        if (data.success && data.url) {
+                            uploadedImageUrl = data.url;
+                            document.getElementById('courseThumbnail').value = data.url;
+
+                            // Update Preview in Main Modal
+                            document.getElementById('thumbnailPreview').innerHTML = `
+                                <img src="${data.url}" alt="Thumbnail">
+                                <div style="position: absolute; bottom: 8px; right: 8px; background: #10B981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem;">
+                                    <i class="fas fa-check"></i> Uploaded
+                                </div>
+                            `;
+                            document.getElementById('thumbnailArea').classList.add('has-image');
+
+                            // Close Crop Modal
+                            setTimeout(() => closeModal('cropModal'), 500);
+                        } else {
+                            alert('Upload failed: ' + (data.error || 'Unknown'));
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Upload error');
+                    }
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/jpeg', 0.8);
+        }
+
+
+        // Course Form Submit
+        document.getElementById('courseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const courseId = document.getElementById('courseId').value;
+            const data = {
+                title: document.getElementById('courseTitle').value,
+                short_description: document.getElementById('courseShortDesc').value,
+                description: document.getElementById('courseDesc').value,
+                thumbnail_url: document.getElementById('courseThumbnail').value || uploadedImageUrl,
+                price: document.getElementById('coursePrice').value,
+                category: document.getElementById('courseCategory').value
+            };
+
+            try {
+                const isEdit = courseId && courseId !== '';
+                const url = isEdit ? `/admin/courses/${courseId}` : '/admin/courses';
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    closeModal('courseModal');
+                    loadCourses();
+                } else {
+                    alert('Failed: ' + (result.error || result.message));
+                }
+            } catch (err) {
+                alert('Error saving course');
+            }
+        });
+
+        // Lesson Form Submit
+        document.getElementById('lessonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const courseId = document.getElementById('lessonCourseId').value;
+            const data = {
+                title: document.getElementById('lessonTitle').value,
+                video_url: document.getElementById('lessonVideo').value,
+                duration_minutes: document.getElementById('lessonDuration').value || 0,
+                order_index: document.getElementById('lessonOrder').value || 0
+            };
+
+            try {
+                const res = await fetch(`/admin/courses/${courseId}/lessons`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    closeModal('lessonModal');
+                    loadCourses();
+                } else {
+                    alert('Failed: ' + (result.error || result.message));
+                }
+            } catch (err) {
+                alert('Error adding lesson');
+            }
+        });
+
+        // Toggle Publish
+        async function togglePublish(id, isPublished) {
+            try {
+                const res = await fetch(`/admin/courses/${id}/publish`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_published: !isPublished })
+                });
+                if (res.ok) loadCourses();
+            } catch (err) {
+                alert('Failed to update');
+            }
+        }
+
+        // Delete Course
+        async function deleteCourse(id) {
+            if (!confirm('Delete this course? This removes all lessons and student progress.')) return;
+            try {
+                const res = await fetch(`/admin/courses/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) loadCourses();
+            } catch (err) {
+                alert('Failed to delete');
+            }
+        }
+
+
+        // ========================
+        // RESOURCE MANAGEMENT
+        // ========================
+        let currentResourceCourseId = null;
+
+        function openResourcesModal(courseId, title) {
+            currentResourceCourseId = courseId;
+            document.getElementById('resourcesModalTitle').textContent = `Manage Resources - ${title}`;
+            document.getElementById('resourcesModal').classList.add('active');
+            loadResources(courseId);
+        }
+
+        async function loadResources(courseId) {
+            const videoList = document.getElementById('videoList');
+            const toolList = document.getElementById('toolList');
+            videoList.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            toolList.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            try {
+                const res = await fetch(`/courses/${courseId}/resources`);
+                const resources = await res.json();
+
+                const videos = resources.filter(r => r.type === 'video');
+                const tools = resources.filter(r => r.type === 'tool');
+
+                videoList.innerHTML = videos.length ? videos.map(r => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: var(--bg-color); border-radius: 6px; margin-bottom: 6px;">
+                        <div>
+                            <div style="font-weight: 500;">${r.title}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px;">${r.url}</div>
+                        </div>
+                        <button onclick="deleteResource(${r.id})" style="color: #EF4444; background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('') : '<div style="color: var(--text-secondary); font-size: 0.9rem;">No videos added</div>';
+
+                toolList.innerHTML = tools.length ? tools.map(r => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: var(--bg-color); border-radius: 6px; margin-bottom: 6px;">
+                        <div>
+                            <div style="font-weight: 500;">${r.title}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px;">${r.url}</div>
+                        </div>
+                        <button onclick="deleteResource(${r.id})" style="color: #EF4444; background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('') : '<div style="color: var(--text-secondary); font-size: 0.9rem;">No tools added</div>';
+
+            } catch (err) {
+                console.error(err);
+                videoList.innerHTML = 'Failed to load';
+            }
+        }
+
+        async function addResource(type) {
+            const titleInput = type === 'video' ? 'newVideoTitle' : 'newToolTitle';
+            const urlInput = type === 'video' ? 'newVideoUrl' : 'newToolUrl';
+
+            const title = document.getElementById(titleInput).value;
+            const url = document.getElementById(urlInput).value;
+
+            if (!title || !url) return alert('Found missing fields');
+
+            try {
+                const res = await fetch('/admin/resources', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        course_id: currentResourceCourseId,
+                        type,
+                        title,
+                        url
+                    })
+                });
+
+                const result = await res.json();
+                if (res.ok) {
+                    document.getElementById(titleInput).value = '';
+                    document.getElementById(urlInput).value = '';
+                    loadResources(currentResourceCourseId);
+                } else {
+                    alert('Failed: ' + (result.error || result.message || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error adding resource');
+            }
+        }
+
+        async function deleteResource(id) {
+            if (!confirm('Remove this resource?')) return;
+            try {
+                const res = await fetch(`/admin/resources/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) loadResources(currentResourceCourseId);
+            } catch (err) {
+                alert('Error deleting');
+            }
+        }
+
+        // ========================
+        // CHAPTER MANAGEMENT
+        // ========================
+
+        let currentChapterCourseId = null;
+
+        function openChaptersModal(courseId, courseTitle) {
+            currentChapterCourseId = courseId;
+            document.querySelector('#chaptersListModal h2').innerHTML = `<i class="fas fa-list" style="color: #8B5CF6;"></i> ${courseTitle} - Chapters`;
+            document.getElementById('chaptersListModal').classList.add('active');
+            loadChapters(courseId);
+        }
+
+        async function loadChapters(courseId) {
+            const container = document.getElementById('chaptersList');
+            container.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i></div>';
+
+            try {
+                const res = await fetch(`/courses/${courseId}/chapters`);
+                const chapters = await res.json();
+
+                if (chapters.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fas fa-file-alt" style="font-size: 3rem; opacity: 0.3; margin-bottom: 16px;"></i>
+                            <p>No chapters yet. Add your first chapter!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = chapters.map((ch, i) => `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 8px;">
+                        <div style="width: 32px; height: 32px; background: rgba(139, 92, 246, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #8B5CF6; font-weight: 700; font-size: 0.9rem;">
+                            ${i + 1}
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ch.title}</div>
+                            ${ch.category ? `<div style="font-size: 0.8rem; color: var(--text-secondary);">${ch.category}</div>` : ''}
+                        </div>
+                        <button onclick="editChapter(${ch.id})" style="padding: 8px 12px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); cursor: pointer;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteChapter(${ch.id})" style="padding: 8px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #EF4444; cursor: pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Load chapters error:', err);
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #EF4444;">Failed to load chapters</div>';
+            }
+        }
+
+        function openAddChapterModal() {
+            document.getElementById('chapterForm').reset();
+            document.getElementById('chapterId').value = '';
+            document.getElementById('chapterCourseId').value = currentChapterCourseId;
+            document.getElementById('chapterModalTitle').textContent = 'Add Chapter';
+            document.getElementById('chapterModal').classList.add('active');
+        }
+
+        async function editChapter(chapterId) {
+            try {
+                const res = await fetch(`/chapters/${chapterId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const chapter = await res.json();
+
+                document.getElementById('chapterId').value = chapter.id;
+                document.getElementById('chapterCourseId').value = chapter.course_id;
+                document.getElementById('chapterTitle').value = chapter.title;
+                document.getElementById('chapterCategory').value = chapter.category || '';
+                document.getElementById('chapterContent').value = chapter.content_html || '';
+                document.getElementById('chapterModalTitle').textContent = 'Edit Chapter';
+                document.getElementById('chapterModal').classList.add('active');
+            } catch (err) {
+                alert('Failed to load chapter');
+            }
+        }
+
+        async function deleteChapter(chapterId) {
+            if (!confirm('Delete this chapter?')) return;
+            try {
+                const res = await fetch(`/admin/chapters/${chapterId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    loadChapters(currentChapterCourseId);
+                } else {
+                    alert('Failed to delete');
+                }
+            } catch (err) {
+                alert('Failed to delete chapter');
+            }
+        }
+
+        // Chapter Form Submit
+        document.getElementById('chapterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const chapterId = document.getElementById('chapterId').value;
+            const courseId = document.getElementById('chapterCourseId').value;
+            const data = {
+                title: document.getElementById('chapterTitle').value,
+                category: document.getElementById('chapterCategory').value || null,
+                content_html: document.getElementById('chapterContent').value
+            };
+
+            try {
+                const isEdit = chapterId && chapterId !== '';
+                const url = isEdit ? `/admin/chapters/${chapterId}` : `/admin/courses/${courseId}/chapters`;
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                if (result.success || result.chapter) {
+                    closeModal('chapterModal');
+                    loadChapters(courseId);
+                } else {
+                    alert('Failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Error saving chapter');
+            }
+        });
+
+        loadCourses();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referrals - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="luxury-theme.css">
+</head>
+
+<body>
+
+    <!-- MOBILE TOGGLE -->
+    <div class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span class="brand-text">Earnio</span>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="team.html" class="active">
+                    <i class="fas fa-users"></i> Referrals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tasks.html">
+                    <i class="fas fa-bolt"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="profile.html">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+
+            <li class="nav-item admin-nav" id="adminNavItem" style="display: none;">
+                <a href="admin.html">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section">
+            <div class="user-avatar" id="userAvatar">E</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarEmail">Loading...</div>
+                <div class="user-status" id="sidebarStatus">Checking...</div>
+            </div>
+            <div class="logout-btn" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <div class="greeting">Grow your team 📈</div>
+            <div class="page-title">Referrals</div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalReferrals">0</div>
+                <div class="stat-label">Total Invited</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">KES <span id="earnedFromRef">0</span></div>
+                <div class="stat-label">Total Earned</div>
+            </div>
+        </div>
+
+        <!-- REFERRAL LINK -->
+        <div class="section-label">Your Referral Link</div>
+        <div class="card">
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                Share your unique link and earn <span style="color: var(--neon); font-weight: 600;">KES 50</span> for
+                every friend who joins Earnio.
+            </p>
+            <div class="ref-box">
+                <span id="referralLink"
+                    style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary);">Loading...</span>
+                <button class="copy-btn" onclick="copyReferral()"><i class="fas fa-copy"></i></button>
+            </div>
+        </div>
+
+        <!-- REFERRAL HISTORY -->
+        <div class="section-label">Referral History</div>
+        <div id="referralsList">
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <p>No referrals yet. Share your link to start earning!</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                document.addEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        function closeSidebarOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                document.removeEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch('/dashboard/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed');
+                }
+
+                const data = await res.json();
+
+                // User info
+                document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
+                document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
+                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                // Admin
+                if (data.user.isAdmin) {
+                    document.getElementById('adminNavItem').style.display = 'block';
+                }
+
+                // Stats
+                const referrals = data.user.referrals || [];
+                document.getElementById('totalReferrals').textContent = referrals.length;
+                document.getElementById('earnedFromRef').textContent = (referrals.length * 50).toLocaleString();
+
+                // Referral link
+                const refCode = data.user.referral_code || data.user.id;
+                document.getElementById('referralLink').textContent = `${window.location.origin}/signup.html?ref=${refCode}`;
+
+                // Referrals list
+                const listEl = document.getElementById('referralsList');
+                if (referrals.length > 0) {
+                    listEl.innerHTML = referrals.map(ref => `
+                        <div class="list-item">
+                            <div class="list-icon"><i class="fas fa-user"></i></div>
+                            <div class="list-content">
+                                <div class="list-title">${ref.email || 'User'}</div>
+                                <div class="list-subtitle">Joined ${new Date(ref.created_at).toLocaleDateString()}</div>
+                            </div>
+                            <span class="status-badge success"><i class="fas fa-check"></i> +KES 50</span>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (err) {
+                console.error('Load error:', err);
+            }
+        }
+
+        function copyReferral() {
+            const link = document.getElementById('referralLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i>';
+                }, 2000);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

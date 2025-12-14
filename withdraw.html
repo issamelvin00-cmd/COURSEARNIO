@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="luxury-theme.css">
+</head>
+
+<body>
+
+    <!-- MOBILE TOGGLE -->
+    <div class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span class="brand-text">Earnio</span>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="team.html">
+                    <i class="fas fa-users"></i> Referrals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tasks.html">
+                    <i class="fas fa-bolt"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="profile.html">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+
+            <li class="nav-item admin-nav" id="adminNavItem" style="display: none;">
+                <a href="admin.html">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section">
+            <div class="user-avatar" id="userAvatar">E</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarEmail">Loading...</div>
+                <div class="user-status" id="sidebarStatus">Checking...</div>
+            </div>
+            <div class="logout-btn" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <div class="greeting">Cash out your earnings 💰</div>
+            <div class="page-title">Withdraw</div>
+        </div>
+
+        <!-- BALANCE CARD -->
+        <div class="card" style="max-width: 500px;">
+            <div style="text-align: center; padding: 20px 0 30px;">
+                <div
+                    style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
+                    Available Balance</div>
+                <div style="font-size: 3rem; font-weight: 700;">
+                    <span style="color: var(--text-secondary); font-size: 1.5rem;">KES</span>
+                    <span style="color: var(--neon);" id="maxBalance">0</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>M-Pesa Phone Number</label>
+                <input type="text" id="phone" placeholder="e.g. 0712345678">
+            </div>
+
+            <div class="form-group">
+                <label>Amount (Min KES 150)</label>
+                <input type="number" id="amount" placeholder="Amount to withdraw">
+            </div>
+
+            <button class="btn-primary" style="width: 100%;" onclick="requestWithdraw()">
+                <i class="fas fa-paper-plane"></i> Submit Request
+            </button>
+        </div>
+
+        <!-- WITHDRAWAL HISTORY -->
+        <div class="section-label" style="margin-top: 40px;">Recent Requests</div>
+        <div id="historyList">
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>No withdrawal requests yet</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                document.addEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        function closeSidebarOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                document.removeEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch('/dashboard/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed');
+                }
+
+                const data = await res.json();
+
+                document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
+                document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
+                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+                document.getElementById('maxBalance').textContent = data.wallet.balanceKES.toLocaleString();
+
+                if (data.user.isAdmin) {
+                    document.getElementById('adminNavItem').style.display = 'block';
+                }
+
+            } catch (err) {
+                console.error('Load error:', err);
+            }
+        }
+
+        async function requestWithdraw() {
+            const phone = document.getElementById('phone').value;
+            const amount = document.getElementById('amount').value;
+
+            if (!phone || !amount) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const res = await fetch('/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phone, amount })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Request submitted! Admin will process it shortly.');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) {
+                alert('Connection failed');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

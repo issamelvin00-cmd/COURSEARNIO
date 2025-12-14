@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Minimal Paystack Test</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        body {
+            padding: 50px;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        button {
+            padding: 20px 40px;
+            font-size: 20px;
+            background: #22c55e;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Minimal Paystack Test</h1>
+    <p>This page tests Paystack ONLY (No backend, no database).</p>
+    <button onclick="pay()">Pay KES 100</button>
+
+    <script>
+        function pay() {
+            alert('Starting...');
+
+            if (typeof PaystackPop === 'undefined') {
+                alert('ERROR: Paystack script not loaded!');
+                return;
+            }
+
+            const handler = PaystackPop.setup({
+                key: 'pk_test_e61df53001707bcf5afe0fbfa20d361c209311f1', // Checks if this key itself is valid
+                email: 'test@email.com',
+                amount: 10000,
+                currency: 'KES',
+                callback: function (response) {
+                    alert('Success: ' + response.reference);
+                },
+                onClose: function () {
+                    alert('Window closed');
+                }
+            });
+
+            handler.openIframe();
+            alert('Iframe opened?');
+        }
+    </script>
+</body>
+
+</html>

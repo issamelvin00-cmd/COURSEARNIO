@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnio - Master Digital Wealth</title>
+    <meta name="description"
+        content="The premium ecosystem for modern earners. Unlock exclusive courses on AI, OFM, and System Automation.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --surface-color: #141414;
+            --primary-color: #39FF14;
+            --primary-light: #4ade80;
+            --primary-dim: rgba(57, 255, 20, 0.12);
+            --text-primary: #FAFAFA;
+            --text-secondary: #A1A1AA;
+            --border-color: #27272A;
+            --accent-green: #10B981;
+            --accent-blue: #3B82F6;
+            --accent-purple: #8B5CF6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 6%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #000;
+        }
+
+        .nav-links-desktop {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 12px 28px;
+            border-radius: 99px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-ghost {
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.35);
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 140px 6% 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: var(--primary-dim);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 32px;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            line-height: 1.05;
+            font-weight: 800;
+            letter-spacing: -3px;
+            margin-bottom: 28px;
+            max-width: 900px;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            max-width: 580px;
+            margin: 0 auto 48px;
+            font-size: 1.25rem;
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cta-btn {
+            padding: 18px 48px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: #000;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 99px;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 50px rgba(245, 158, 11, 0.35);
+        }
+
+        .cta-btn-outline {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .cta-btn-outline:hover {
+            border-color: var(--text-secondary);
+            box-shadow: none;
+            transform: translateY(-2px);
+        }
+
+        /* Stats */
+        .stats-container {
+            margin-top: 80px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 24px;
+            background: var(--surface-color);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-num {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        /* Features/Courses Section */
+        .features {
+            padding: 140px 6%;
+            background: linear-gradient(180deg, var(--bg-color) 0%, #0a0a0a 100%);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 80px;
+        }
+
+        .section-tag {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--primary-dim);
+            border-radius: 99px;
+            letter-spacing: 1px;
+        }
+
+        .section-title {
+            font-size: 3.25rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.7;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 28px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--surface-color);
+            padding: 40px 36px;
+            border-radius: 28px;
+            border: 1px solid var(--border-color);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--card-accent, var(--primary-color)), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--text-secondary);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .f-icon-box {
+            width: 64px;
+            height: 64px;
+            background: var(--icon-bg, var(--primary-dim));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 28px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 14px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 6%;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        /* Mobile */
+        @media (max-width: 900px) {
+            .hero h1 {
+                font-size: 2.75rem;
+                letter-spacing: -1.5px;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .section-title {
+                font-size: 2.25rem;
+            }
+
+            .nav-links-desktop .btn-ghost {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-coins"></i></div>
+            Earnio
+        </div>
+        <div class="nav-links-desktop">
+            <a href="login.html" class="nav-btn btn-ghost">Log In</a>
+            <a href="signup.html" class="nav-btn btn-primary">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <span class="hero-badge"><i class="fas fa-sparkles"></i> Premium Earning Platform</span>
+        <h1>Master the Art of <br><span class="highlight">Digital Wealth</span></h1>
+        <p>The elite ecosystem for modern earners. Complete tasks, build passive income streams, and connect
+            with a community of ambitious achievers.</p>
+
+        <div class="hero-cta">
+            <a href="signup.html" class="cta-btn">Start Earning <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-num">15k+</div>
+                <div class="stat-label">Members</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">$1.2M+</div>
+                <div class="stat-label">Generated</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">4.9/5</div>
+                <div class="stat-label">Rating</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="courses">
+        <div class="section-header">
+            <span class="section-tag">PREMIUM ECOSYSTEM</span>
+            <h2 class="section-title">Earn, Grow, Repeat</h2>
+            <p class="section-subtitle">We provide the tools and systems for the most profitable digital earnings.</p>
+        </div>
+
+        <div class="feature-grid">
+            <!-- Feature 1: COURSES - Main Earning Method -->
+            <div class="feature-card"
+                style="--card-accent: #8B5CF6; --icon-bg: rgba(139, 92, 246, 0.12); grid-column: span 2;">
+                <div class="f-icon-box" style="color: #8B5CF6;"><i class="fas fa-graduation-cap"></i></div>
+                <h3>Premium Courses</h3>
+                <p>Master high-income skills with our exclusive courses:</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;">
+                    <span
+                        style="background: rgba(59, 130, 246, 0.15); color: #3B82F6; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-user-friends"></i> AI OFM</span>
+                    <span
+                        style="background: rgba(239, 68, 68, 0.15); color: #EF4444; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">📺
+                        YouTube Automation</span>
+                    <span
+                        style="background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">🛒
+                        Shopify</span>
+                    <span
+                        style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">+
+                        More</span>
+                </div>
+            </div>
+
+            <!-- Feature 2: Tasks -->
+            <div class="feature-card" style="--card-accent: #10B981; --icon-bg: rgba(16, 185, 129, 0.12);">
+                <div class="f-icon-box" style="color: #10B981;"><i class="fas fa-bolt"></i></div>
+                <h3>Daily Tasks</h3>
+                <p>Complete simple digital tasks and earn real cash instantly. New opportunities added daily.</p>
+            </div>
+
+            <!-- Feature 3: Referrals -->
+            <div class="feature-card" style="--card-accent: #EF4444; --icon-bg: rgba(239, 68, 68, 0.12);">
+                <div class="f-icon-box" style="color: #EF4444;"><i class="fas fa-user-friends"></i></div>
+                <h3>Referral Program</h3>
+                <p>Monetize your network. Earn <strong>KES 50</strong> instantly for every friend you invite. Build
+                    passive income streams.</p>
+            </div>
+
+            <!-- Feature 4: Wallet -->
+            <div class="feature-card" style="--card-accent: #F59E0B; --icon-bg: rgba(245, 158, 11, 0.12);">
+                <div class="f-icon-box" style="color: #F59E0B;"><i class="fas fa-wallet"></i></div>
+                <h3>Instant Wallet</h3>
+                <p>Seamless payouts directly to M-Pesa. Track earnings in real-time with our premium dashboard.</p>
+            </div>
+
+            <!-- Feature 5: Community -->
+            <div class="feature-card" style="--card-accent: #3B82F6; --icon-bg: rgba(59, 130, 246, 0.12);">
+                <div class="f-icon-box" style="color: #3B82F6;"><i class="fas fa-users"></i></div>
+                <h3>Elite Community</h3>
+                <p>Join thousands of ambitious earners building digital wealth together.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Earnio. Built for the ambitious. <a href="#">Terms</a> · <a href="#">Privacy</a></p>
+    </footer>
+
+</body>
+
+</html>

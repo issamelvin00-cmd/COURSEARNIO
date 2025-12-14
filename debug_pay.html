@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Payment</title>
+    <!-- Paystack Inline -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Last Resort Debugger</h1>
+    <p>Current URL:
+        <script>document.write(window.location.href)</script>
+    </p>
+    <button id="btn">CLICK ME TO TEST</button>
+
+    <script>
+        const btn = document.getElementById('btn');
+
+        btn.addEventListener('click', async () => {
+            alert('1. Button Clicked!');
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('ERROR: Not logged in (No Token). Go to login.html');
+                return;
+            }
+            alert('2. Token Found');
+
+            try {
+                alert('3. Fetching from Server...');
+                const res = await fetch('http://localhost:3000/pay/initiate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!res.ok) {
+                    const txt = await res.text();
+                    alert('ERROR: Server returned ' + res.status + '\nComputed: ' + txt);
+                    return;
+                }
+
+                const data = await res.json();
+                alert('4. Data Received!\nKey: ' + data.key + '\nRef: ' + data.reference);
+
+                if (typeof PaystackPop === 'undefined') {
+                    alert('CRITICAL: Paystack Library NOT loaded!');
+                    return;
+                }
+
+                alert('5. Opening Paystack...');
+                const handler = PaystackPop.setup({
+                    key: data.key,
+                    email: 'debug@test.com',
+                    amount: data.amount,
+                    currency: 'KES',
+                    ref: data.reference,
+                    callback: function (d) {
+                        alert('SUCCESS! Ref: ' + d.reference);
+                    },
+                    onClose: function () {
+                        alert('Popup Closed');
+                    }
+                });
+
+                handler.openIframe();
+                alert('6. Iframe Command Sent. Check screen.');
+
+            } catch (e) {
+                alert('EXCEPTION: ' + e.message);
+            }
+        });
+    </script>
+</body>
+
+</html>

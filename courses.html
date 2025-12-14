@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="luxury-theme.css">
+    <style>
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            padding-bottom: 80px;
+        }
+
+        @media (max-width: 480px) {
+            .courses-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .course-card {
+                border-radius: 16px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .course-thumbnail {
+                height: 160px;
+            }
+
+            .course-content {
+                padding: 16px;
+            }
+
+            .course-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Course Card */
+        .course-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .course-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(57, 255, 20, 0.15);
+        }
+
+        .course-card.unlocked {
+            border-color: rgba(57, 255, 20, 0.3);
+        }
+
+        /* Thumbnail with Lock Overlay */
+        .course-thumbnail {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .course-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .course-thumbnail .placeholder-icon {
+            font-size: 3.5rem;
+            color: var(--primary-color);
+            opacity: 0.4;
+        }
+
+        /* Lock Overlay */
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .lock-overlay i {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 8px;
+        }
+
+        .lock-overlay span {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .course-card:hover .lock-overlay {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .course-card:hover .lock-overlay i {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Unlocked Badge */
+        .unlocked-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(57, 255, 20, 0.2);
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Card Content */
+        .course-content {
+            padding: 20px;
+        }
+
+        .course-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: white;
+            line-height: 1.3;
+        }
+
+        .course-info {
+            display: flex;
+            gap: 15px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+
+        .course-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .course-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        /* Action Buttons */
+        .course-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-pay {
+            background: linear-gradient(135deg, var(--primary-color), #2ecc40);
+            color: #000;
+        }
+
+        .btn-pay:hover {
+            box-shadow: 0 5px 25px rgba(57, 255, 20, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #000;
+        }
+
+        .btn-play:hover {
+            box-shadow: 0 5px 25px rgba(0, 212, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-details {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            flex: 0 0 auto;
+            padding: 14px;
+        }
+
+        .btn-details:hover {
+            border-color: var(--primary-color);
+            background: rgba(57, 255, 20, 0.1);
+        }
+
+        /* Loading state */
+        .btn-action.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* Empty state */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 768px) {
+            .courses-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .course-thumbnail {
+                height: 160px;
+            }
+
+            .course-content {
+                padding: 16px;
+            }
+
+            .course-title {
+                font-size: 1.05rem;
+            }
+
+            .course-price {
+                font-size: 1.2rem;
+            }
+
+            .btn-action {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .course-actions {
+                flex-direction: column;
+            }
+
+            .btn-details {
+                width: 100%;
+            }
+        }
+
+        /* Light theme adjustments */
+        [data-theme="light"] .course-card:hover {
+            box-shadow: 0 15px 40px rgba(22, 163, 74, 0.15);
+        }
+
+        [data-theme="light"] .lock-overlay {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="light"] .course-thumbnail {
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MOBILE TOGGLE -->
+    <div class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span class="brand-text">Earnio</span>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="team.html">
+                    <i class="fas fa-users"></i> Referrals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tasks.html">
+                    <i class="fas fa-bolt"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html" class="active">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="profile.html">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+
+            <li class="nav-item admin-nav" id="adminNavItem" style="display: none;">
+                <a href="admin.html">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section">
+            <div class="user-avatar" id="userAvatar">E</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarEmail">Loading...</div>
+                <div class="user-status" id="sidebarStatus">Checking...</div>
+            </div>
+            <div class="logout-btn" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <div class="greeting">Explore & Learn 📚</div>
+            <div class="page-title">Browse Courses</div>
+        </div>
+
+        <div id="coursesGrid" class="courses-grid">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading courses...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                document.addEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        function closeSidebarOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                document.removeEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        let ownedCourseIds = [];
+        let allCourses = [];
+        let isAdmin = false;
+
+        async function loadUserData() {
+            try {
+                const res = await fetch('/dashboard/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
+                document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
+                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                // Store email for Paystack
+                localStorage.setItem('userEmail', data.user.email);
+
+                if (data.user.isAdmin) {
+                    document.getElementById('adminNavItem').style.display = 'block';
+                    isAdmin = true; // Set admin flag
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadCourses() {
+            try {
+                // Fetch courses and owned courses in parallel
+                const [coursesRes, ownedRes] = await Promise.all([
+                    fetch('/courses'),
+                    fetch('/courses/owned', { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+
+                allCourses = await coursesRes.json();
+
+                if (ownedRes.ok) {
+                    const ownedData = await ownedRes.json();
+                    ownedCourseIds = ownedData.map(c => c.course_id);
+                }
+
+                renderCourses();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('coursesGrid').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff4444;"></i>
+                        <div>Failed to load courses</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderCourses() {
+            const grid = document.getElementById('coursesGrid');
+
+            if (allCourses.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <h3>No courses available yet</h3>
+                        <p>Check back soon for new content!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = allCourses.map(course => {
+                // Admins see all courses as unlocked, or check if user owns this course
+                const isOwned = isAdmin || ownedCourseIds.includes(course.id);
+
+                return `
+                    <div class="course-card ${isOwned ? 'unlocked' : ''}" id="course-${course.id}">
+                        <div class="course-thumbnail">
+                            ${course.thumbnail_url
+                        ? `<img src="${course.thumbnail_url}" alt="${course.title}">`
+                        : '<i class="fas fa-graduation-cap placeholder-icon"></i>'}
+                            
+                            ${isOwned
+                        ? `<div class="unlocked-badge" style="background: rgba(57, 255, 20, 0.2); border-color: var(--primary-color); color: var(--primary-color);"><i class="fas fa-lock-open"></i> Unlocked</div>`
+                        : `<div class="lock-overlay">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Locked</span>
+                                  </div>`
+                    }
+                        </div>
+                        
+                        <div class="course-content">
+                            <div class="course-title">${course.title}</div>
+                            <div class="course-info">
+                                <span><i class="fas fa-play-circle"></i> ${course.lesson_count || 0} lessons</span>
+                                <span><i class="fas fa-clock"></i> ${course.duration_hours || 0}h</span>
+                            </div>
+                            <div class="course-price">KES ${course.priceKES?.toLocaleString() || 0}</div>
+                            
+                            <div class="course-actions">
+                                ${isOwned
+                        ? `<button class="btn-action btn-play" onclick="startCourse(${course.id})">
+                                         <i class="fas fa-play"></i> Start Learning
+                                       </button>`
+                        : `<button class="btn-action btn-pay" id="pay-btn-${course.id}" onclick="payCourse(${course.id}, ${course.priceKES * 100})">
+                                         <i class="fas fa-lock-open"></i> Pay Now
+                                       </button>`
+                    }
+                                <button class="btn-action btn-details" onclick="viewDetails(${course.id})" title="View Details">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function startCourse(courseId) {
+            window.location.href = `course-player.html?id=${courseId}`;
+        }
+
+        function viewDetails(courseId) {
+            window.location.href = `course-detail.html?id=${courseId}`;
+        }
+
+        async function payCourse(courseId, amountCents) {
+            const btn = document.getElementById(`pay-btn-${courseId}`);
+            const originalContent = btn.innerHTML;
+
+            try {
+                // Show loading
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                btn.classList.add('loading');
+
+                // Get payment reference from server
+                console.log('Getting payment reference for course:', courseId);
+                const res = await fetch(`/courses/${courseId}/purchase`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                console.log('Purchase response:', data);
+
+                if (!data.reference) {
+                    throw new Error(data.message || 'Failed to initiate payment');
+                }
+
+                // Reset button before opening popup
+                btn.innerHTML = originalContent;
+                btn.classList.remove('loading');
+
+                console.log('Opening Paystack with key:', data.key.substring(0, 15) + '...');
+
+                // Open Paystack
+                const handler = PaystackPop.setup({
+                    key: data.key,
+                    email: localStorage.getItem('userEmail') || 'user@earnio.app',
+                    amount: data.amount,
+                    currency: 'KES',
+                    ref: data.reference,
+                    callback: function (response) {
+                        console.log('Paystack callback triggered!', response);
+                        // Use callback instead of onSuccess for better compatibility
+                        unlockCourse(courseId, data.reference, response.reference, data.amount)
+                            .then(() => console.log('Unlock complete'))
+                            .catch(err => {
+                                console.error('Unlock failed in callback:', err);
+                                alert('Payment received but unlock failed. Refreshing page...');
+                                location.reload();
+                            });
+                    },
+                    onClose: function () {
+                        console.log('Paystack popup closed');
+                    }
+                });
+
+                handler.openIframe();
+
+            } catch (err) {
+                console.error('Payment error:', err);
+                btn.innerHTML = originalContent;
+                btn.classList.remove('loading');
+                alert('Payment failed: ' + err.message);
+            }
+        }
+
+        async function unlockCourse(courseId, reference, paystackRef, amount) {
+            const btn = document.getElementById(`pay-btn-${courseId}`);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unlocking...';
+            btn.classList.add('loading');
+
+            try {
+                const res = await fetch(`/courses/${courseId}/unlock`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reference, paystackRef, amount })
+                });
+
+                const data = await res.json();
+                console.log('Unlock response:', data);
+
+                if (data.success) {
+                    // Add to owned list
+                    ownedCourseIds.push(courseId);
+
+                    // Update UI immediately
+                    updateCardToUnlocked(courseId);
+
+                    // Show success
+                    alert('🎉 Course unlocked! You can start learning now.');
+                } else {
+                    throw new Error(data.message || 'Unlock failed');
+                }
+            } catch (err) {
+                console.error('Unlock error:', err);
+                alert('Payment received! Please refresh the page to access your course.');
+                location.reload();
+            }
+        }
+
+        function updateCardToUnlocked(courseId) {
+            const card = document.getElementById(`course-${courseId}`);
+            if (!card) return;
+
+            // Add unlocked class
+            card.classList.add('unlocked');
+
+            // Replace lock overlay with unlocked badge
+            const thumbnail = card.querySelector('.course-thumbnail');
+            const lockOverlay = thumbnail.querySelector('.lock-overlay');
+            if (lockOverlay) {
+                lockOverlay.remove();
+            }
+
+            // Add unlocked badge if not exists
+            if (!thumbnail.querySelector('.unlocked-badge')) {
+                thumbnail.insertAdjacentHTML('beforeend', `
+                    <div class="unlocked-badge" style="background: rgba(57, 255, 20, 0.2); border-color: var(--primary-color); color: var(--primary-color);"><i class="fas fa-lock-open"></i> Unlocked</div>
+                `);
+            }
+
+            // Replace button
+            const actionsDiv = card.querySelector('.course-actions');
+            const payBtn = actionsDiv.querySelector('.btn-pay');
+            if (payBtn) {
+                payBtn.outerHTML = `
+                    <button class="btn-action btn-play" onclick="startCourse(${courseId})">
+                        <i class="fas fa-play"></i> Start Learning
+                    </button>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize - ensure user data loads first (for isAdmin flag)
+        async function init() {
+            await loadUserData();
+            loadCourses();
+        }
+        init();
+    </script>
+</body>
+
+</html>

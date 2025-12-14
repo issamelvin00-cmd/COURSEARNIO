@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: block;
+            padding: 0;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 48px;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 48px;
+        }
+
+        .stat-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Quick Links */
+        .quick-links {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 48px;
+        }
+
+        .quick-link {
+            padding: 14px 28px;
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .quick-link:hover {
+            background: var(--primary-dim);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .quick-link.primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: #000;
+            border: none;
+        }
+
+        .quick-link.primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0;
+        }
+
+        .tab {
+            padding: 14px 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .data-table tr:hover td {
+            background: var(--surface-hover);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--primary-color);
+        }
+
+        .badge-approved {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+        }
+
+        .badge-rejected {
+            background: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+        }
+
+        .badge-paid {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+        }
+
+        .badge-free {
+            background: rgba(161, 161, 170, 0.15);
+            color: var(--text-secondary);
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+        }
+
+        .badge-inactive {
+            background: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 8px;
+        }
+
+        .btn-approve {
+            background: #10B981;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #059669;
+        }
+
+        .btn-reject {
+            background: #EF4444;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #DC2626;
+        }
+
+        .btn-edit {
+            background: var(--primary-dim);
+            color: var(--primary-color);
+        }
+
+        .btn-edit:hover {
+            background: var(--primary-color);
+            color: #000;
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+        }
+
+        .btn-delete:hover {
+            background: #EF4444;
+            color: white;
+        }
+
+        /* Forms */
+        .form-section {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-submit {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-cancel {
+            padding: 14px 32px;
+            background: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Withdrawal payment info */
+        .payment-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        .payment-info strong {
+            color: #3B82F6;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Card wrapper */
+        .card-section {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div class="admin-title">
+                <i class="fas fa-shield-alt"></i>
+                Admin Panel
+            </div>
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--text-primary);" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #10B981;" id="paidUsers">0</div>
+                <div class="stat-label">Paid Members</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--primary-color);" id="pendingWithdrawals">0</div>
+                <div class="stat-label">Pending Payouts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #3B82F6;" id="totalCourses">0</div>
+                <div class="stat-label">Courses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #8B5CF6;" id="totalTasks">0</div>
+                <div class="stat-label">Active Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #10B981;" id="totalRevenue">0</div>
+                <div class="stat-label">Revenue (KES)</div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <a href="admin-courses.html" class="quick-link primary">
+                <i class="fas fa-book"></i> Course Manager
+            </a>
+            <button class="quick-link" onclick="showTaskModal()">
+                <i class="fas fa-plus"></i> Add Task
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('withdrawals')">Withdrawals</button>
+            <button class="tab" onclick="switchTab('tasks')">Tasks</button>
+            <button class="tab" onclick="switchTab('users')">Users</button>
+        </div>
+
+        <!-- Withdrawals Tab -->
+        <div id="withdrawals-tab" class="tab-content active">
+            <div class="card-section">
+                <div class="card-header">
+                    <h3>Withdrawal Requests</h3>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">Manual M-Pesa payouts</span>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Phone (M-Pesa)</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrawalsTable">
+                        <tr>
+                            <td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><br>Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="payment-info">
+                <strong><i class="fas fa-info-circle"></i> Manual Payment:</strong>
+                After approving, send M-Pesa to the user's phone number manually, then mark as approved.
+                The user's balance has already been deducted when they requested the withdrawal.
+            </div>
+        </div>
+
+
+
+        <!-- Tasks Tab -->
+        <div id="tasks-tab" class="tab-content">
+            <div class="card-section">
+                <div class="card-header">
+                    <h3>Task Management</h3>
+                    <button class="quick-link" onclick="showTaskModal()" style="padding: 10px 20px;">
+                        <i class="fas fa-plus"></i> New Task
+                    </button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Reward</th>
+                            <th>Daily Limit</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasksTable">
+                        <tr>
+                            <td colspan="6" class="empty-state"><i class="fas fa-tasks"></i><br>Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-tab" class="tab-content">
+            <div class="card-section">
+                <div class="card-header">
+                    <h3>All Users</h3>
+                </div>
+                <div style="max-height: 500px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Referral Code</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td colspan="3" class="empty-state"><i class="fas fa-users"></i><br>Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <h2 id="taskModalTitle">Add New Task</h2>
+            <form id="taskForm">
+                <input type="hidden" id="taskId">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Task Title *</label>
+                    <input type="text" id="taskTitle" placeholder="e.g. Watch a YouTube video" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Description</label>
+                    <textarea id="taskDescription" rows="3" placeholder="What should the user do?"></textarea>
+                </div>
+                <div class="form-grid" style="margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>Reward (KES) *</label>
+                        <input type="number" id="taskReward" placeholder="5" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Daily Limit</label>
+                        <input type="number" id="taskLimit" placeholder="1" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>Task Type</label>
+                        <select id="taskType">
+                            <option value="general">General</option>
+                            <option value="video">Watch Video</option>
+                            <option value="survey">Survey</option>
+                            <option value="social">Social Media</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>External URL (optional)</label>
+                        <input type="url" id="taskUrl" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Save Task</button>
+                    <button type="button" class="btn-cancel" onclick="closeTaskModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const res = await fetch('/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.status === 403) {
+                    alert('Access Denied');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+                const data = await res.json();
+                document.getElementById('totalUsers').textContent = data.totalUsers;
+                document.getElementById('paidUsers').textContent = data.paidUsers;
+                document.getElementById('pendingWithdrawals').textContent = data.pendingWithdrawals;
+                document.getElementById('totalCourses').textContent = data.totalCourses;
+                document.getElementById('totalTasks').textContent = data.totalTasks;
+                document.getElementById('totalRevenue').textContent = data.totalRevenueKES.toLocaleString();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Load admin data
+        async function loadAdminData() {
+            try {
+                const res = await fetch('/admin/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                // Withdrawals
+                const wTable = document.getElementById('withdrawalsTable');
+                if (!data.withdrawals || data.withdrawals.length === 0) {
+                    wTable.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><br>No withdrawal requests</td></tr>';
+                } else {
+                    wTable.innerHTML = data.withdrawals.map(w => `
+                <tr>
+                    <td>${w.email || 'Unknown'}</td>
+                    <td><strong>KES ${w.amount}</strong></td>
+                    <td style="font-family: monospace;">${w.phone || '-'}</td>
+                    <td>${new Date(w.created_at).toLocaleDateString()}</td>
+                    <td><span class="badge badge-${w.status}">${w.status}</span></td>
+                    <td>
+                        ${w.status === 'pending' ? `
+                            <button class="btn-action btn-approve" onclick="actionWithdraw('${w.id}', 'approve')">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn-action btn-reject" onclick="actionWithdraw('${w.id}', 'reject')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : '<span style="color: var(--text-secondary);">Processed</span>'}
+                    </td>
+                </tr>
+            `).join('');
+                }
+
+                // Users
+                const uTable = document.getElementById('usersTable');
+                uTable.innerHTML = data.users.map(u => `
+            <tr>
+                <td>${u.email}</td>
+                <td style="font-family: monospace;">${u.referral_code}</td>
+                <td><span class="badge badge-${u.is_paid ? 'paid' : 'free'}">${u.is_paid ? 'Paid' : 'Free'}</span></td>
+            </tr>
+        `).join('');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Load course orders
+        async function loadOrders() {
+            try {
+                const res = await fetch('http://localhost:3000/admin/course-orders', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const orders = await res.json();
+
+                const oTable = document.getElementById('ordersTable');
+                if (!orders || orders.length === 0) {
+                    oTable.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-shopping-cart"></i><br>No course orders yet</td></tr>';
+                } else {
+                    oTable.innerHTML = orders.map(o => `
+                        <tr>
+                            <td>${o.email}</td>
+                            <td><strong>${o.courseTitle}</strong></td>
+                            <td>KES ${(o.amount_paid / 100).toLocaleString()}</td>
+                            <td style="font-family: monospace; font-size: 0.8rem;">${o.transaction_ref || '-'}</td>
+                            <td>${new Date(o.created_at).toLocaleDateString()}</td>
+                            <td><span class="badge badge-${o.status}">${o.status}</span></td>
+                            <td>
+                                ${o.status === 'pending' ? `
+                                    <button class="btn-action btn-approve" onclick="actionOrder(${o.id}, 'approve')">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="btn-action btn-reject" onclick="actionOrder(${o.id}, 'reject')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : '<span style="color: var(--text-secondary);">Processed</span>'}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Action on course order
+        async function actionOrder(id, action) {
+            if (!confirm(`${action === 'approve' ? 'Approve and unlock course for user' : 'Reject'} this order?`)) return;
+
+            try {
+                const res = await fetch(`/admin/course-orders/${id}/action`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ action })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message || 'Success');
+                    loadOrders();
+                } else {
+                    alert(data.error || 'Failed');
+                }
+            } catch (err) {
+                alert('Failed to process order');
+            }
+        }
+
+        // Load tasks
+        async function loadTasks() {
+            try {
+                const res = await fetch('/admin/tasks', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const tasks = await res.json();
+
+                const tTable = document.getElementById('tasksTable');
+                if (!tasks || tasks.length === 0) {
+                    tTable.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fas fa-tasks"></i><br>No tasks created yet</td></tr>';
+                } else {
+                    tTable.innerHTML = tasks.map(t => `
+                <tr>
+                    <td><strong>${t.title}</strong></td>
+                    <td><span class="badge">${t.task_type}</span></td>
+                    <td>KES ${t.reward_kes}</td>
+                    <td>${t.daily_limit}x/day</td>
+                    <td><span class="badge badge-${t.is_active ? 'active' : 'inactive'}">${t.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick='editTask(${JSON.stringify(t)})'>
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="deleteTask(${t.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Withdrawal action
+        async function actionWithdraw(id, action) {
+            if (!confirm(`${action === 'approve' ? 'Approve and mark as paid' : 'Reject'} this withdrawal?`)) return;
+
+            try {
+                const res = await fetch(`/admin/withdraw/${id}/action`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ action })
+                });
+                if (res.ok) {
+                    loadAdminData();
+                    loadStats();
+                }
+            } catch (err) {
+                alert('Failed');
+            }
+        }
+
+        // Task Modal
+        function showTaskModal(task = null) {
+            document.getElementById('taskModal').classList.add('active');
+            document.getElementById('taskModalTitle').textContent = task ? 'Edit Task' : 'Add New Task';
+
+            if (task) {
+                document.getElementById('taskId').value = task.id;
+                document.getElementById('taskTitle').value = task.title;
+                document.getElementById('taskDescription').value = task.description || '';
+                document.getElementById('taskReward').value = task.reward_kes;
+                document.getElementById('taskLimit').value = task.daily_limit;
+                document.getElementById('taskType').value = task.task_type;
+                document.getElementById('taskUrl').value = task.url || '';
+            } else {
+                document.getElementById('taskForm').reset();
+                document.getElementById('taskId').value = '';
+            }
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('active');
+        }
+
+        function editTask(task) {
+            showTaskModal(task);
+        }
+
+        // Save task
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('taskId').value;
+            const payload = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                reward_kes: document.getElementById('taskReward').value,
+                daily_limit: document.getElementById('taskLimit').value,
+                task_type: document.getElementById('taskType').value,
+                url: document.getElementById('taskUrl').value
+            };
+
+            try {
+                const url = id ? `/admin/tasks/${id}` : '/admin/tasks';
+                const method = id ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    closeTaskModal();
+                    loadTasks();
+                    loadStats();
+                } else {
+                    const data = await res.json();
+                    alert(data.error || 'Failed to save');
+                }
+            } catch (err) {
+                alert('Error saving task');
+            }
+        });
+
+        // Delete task
+        async function deleteTask(id) {
+            if (!confirm('Delete this task?')) return;
+
+            try {
+                const res = await fetch(`/admin/tasks/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    loadTasks();
+                    loadStats();
+                }
+            } catch (err) {
+                alert('Failed to delete');
+            }
+        }
+
+        // Init
+        loadStats();
+        loadAdminData();
+        loadTasks();
+    </script>
+
+</body>
+
+</html>

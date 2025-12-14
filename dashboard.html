@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Earnio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ====== LUXURY DARK THEME ====== */
+        :root {
+            --bg-color: #000000;
+            --surface-color: #0a0a0a;
+            --card-bg: #0d0d0d;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --neon: #00FF66;
+            --neon-dim: rgba(0, 255, 102, 0.08);
+            --neon-glow: rgba(0, 255, 102, 0.15);
+            --text-primary: #FAFAFA;
+            --text-secondary: #6B6B6B;
+            --text-muted: #3D3D3D;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            line-height: 1.6;
+        }
+
+        /* ====== SIDEBAR ====== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 24px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 48px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--neon), #00CC52);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px var(--neon-glow);
+        }
+
+        .brand-icon i {
+            font-size: 1rem;
+            color: #000;
+        }
+
+        .brand-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .nav-item a.active {
+            color: var(--neon);
+            background: var(--neon-dim);
+        }
+
+        .nav-item a i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 24px 0;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--neon-dim), var(--neon-glow));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--neon);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-status {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .logout-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 80, 80, 0.1);
+            color: #FF5050;
+        }
+
+        /* ====== MAIN CONTENT ====== */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 48px 56px;
+            min-height: 100vh;
+        }
+
+        /* ====== HEADER ====== */
+        .header {
+            margin-bottom: 48px;
+        }
+
+        .greeting {
+            font-size: 0.9rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        /* ====== BALANCE CARD - LUXURY ====== */
+        .balance-card {
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 40px 44px;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow:
+                0 4px 24px rgba(0, 0, 0, 0.4),
+                0 1px 3px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+
+        /* Thin neon line on top */
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 40px;
+            right: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            opacity: 0.4;
+        }
+
+        .balance-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--neon);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.15);
+            }
+        }
+
+        .balance-amount {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .currency {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+        }
+
+        .amount {
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: -3px;
+            background: linear-gradient(180deg, var(--text-primary) 0%, rgba(250, 250, 250, 0.7) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--neon);
+            border-radius: 50px;
+            color: var(--neon);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-outline:hover {
+            background: var(--neon-dim);
+            box-shadow: 0 0 20px var(--neon-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline i {
+            font-size: 0.85rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--neon-dim);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--neon);
+        }
+
+        /* ====== PREMIUM COURSES CARD ====== */
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .courses-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 28px 32px;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            display: block;
+        }
+
+        .courses-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 32px;
+            right: 32px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            opacity: 0.25;
+        }
+
+        .courses-card:hover {
+            border-color: rgba(0, 255, 102, 0.2);
+            transform: translateY(-4px);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 40px var(--neon-glow);
+        }
+
+        .courses-inner {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .courses-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--neon), #00CC52);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 24px var(--neon-glow);
+        }
+
+        .courses-icon i {
+            font-size: 1.5rem;
+            color: #000;
+        }
+
+        .courses-text {
+            flex: 1;
+        }
+
+        .courses-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .courses-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .courses-arrow {
+            width: 40px;
+            height: 40px;
+            background: var(--neon-dim);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neon);
+            transition: all 0.3s ease;
+        }
+
+        .courses-card:hover .courses-arrow {
+            background: var(--neon);
+            color: #000;
+            transform: translateX(4px);
+        }
+
+        /* ====== QUICK ACTIONS ====== */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 48px;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 28px 20px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .action-card:hover {
+            border-color: rgba(0, 255, 102, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-icon {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 16px;
+            background: var(--neon-dim);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neon);
+            font-size: 1.2rem;
+            transition: all 0.25s ease;
+        }
+
+        .action-card:hover .action-icon {
+            background: var(--neon);
+            color: #000;
+            box-shadow: 0 4px 20px var(--neon-glow);
+        }
+
+        .action-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .action-caption {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* ====== REFERRAL CARD ====== */
+        .referral-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px;
+            position: relative;
+        }
+
+        .referral-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 32px;
+            right: 32px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            opacity: 0.2;
+        }
+
+        .referral-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .referral-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .referral-reward {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--neon-dim);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--neon);
+        }
+
+        .referral-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .referral-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 18px;
+        }
+
+        .referral-link {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .copy-btn {
+            width: 44px;
+            height: 44px;
+            background: var(--neon-dim);
+            border: 1px solid var(--neon);
+            border-radius: 12px;
+            color: var(--neon);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--neon);
+            color: #000;
+        }
+
+        /* ====== ADMIN NAV ====== */
+        .admin-nav {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .admin-nav a {
+            color: var(--neon) !important;
+        }
+
+        /* ====== MOBILE TOGGLE ====== */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 1100;
+            width: 44px;
+            height: 44px;
+            background: var(--card-bg);
+            border: 1px solid var(--neon);
+            border-radius: 12px;
+            color: var(--neon);
+            font-size: 1.1rem;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 12px var(--neon-glow);
+        }
+
+        /* ====== RESPONSIVE ====== */
+        @media (max-width: 1024px) {
+            .main-content {
+                padding: 40px 32px;
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 85%;
+                max-width: 300px;
+                transform: translateX(-100%);
+                padding: 24px 20px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
+            }
+
+            .mobile-toggle {
+                display: flex;
+                top: 12px;
+                right: 12px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 72px 16px 32px;
+            }
+
+            .header {
+                margin-bottom: 24px;
+            }
+
+            .greeting {
+                font-size: 0.8rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .brand {
+                margin-bottom: 32px;
+            }
+
+            .brand-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .brand-text {
+                font-size: 1.2rem;
+            }
+
+            .balance-card {
+                padding: 24px 20px;
+                border-radius: 20px;
+            }
+
+            .amount {
+                font-size: 2.5rem;
+                letter-spacing: -2px;
+            }
+
+            .currency {
+                font-size: 1rem;
+            }
+
+            .balance-actions {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+
+            .btn-outline {
+                padding: 10px 20px;
+                font-size: 0.85rem;
+            }
+
+            .section-label {
+                font-size: 0.7rem;
+                margin-bottom: 14px;
+            }
+
+            .courses-card {
+                padding: 20px 16px;
+                border-radius: 18px;
+            }
+
+            .courses-link {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .courses-text h3 {
+                font-size: 1rem;
+            }
+
+            .courses-text p {
+                font-size: 0.85rem;
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .action-card {
+                padding: 16px 12px;
+                border-radius: 16px;
+            }
+
+            .action-icon {
+                width: 40px;
+                height: 40px;
+                margin-bottom: 10px;
+            }
+
+            .action-icon i {
+                font-size: 1rem;
+            }
+
+            .action-label {
+                font-size: 0.8rem;
+            }
+
+            .action-caption {
+                font-size: 0.7rem;
+            }
+
+            .referral-card {
+                padding: 20px 16px;
+                border-radius: 18px;
+            }
+
+            .referral-header span {
+                font-size: 0.75rem;
+            }
+
+            .ref-input-wrapper input {
+                font-size: 0.8rem;
+                padding: 12px 14px;
+            }
+
+            .user-section {
+                padding: 14px 0;
+            }
+
+            .user-avatar {
+                width: 38px;
+                height: 38px;
+            }
+
+            .user-name {
+                font-size: 0.85rem;
+            }
+
+            .nav-item a {
+                padding: 12px 14px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 68px 12px 24px;
+            }
+
+            .page-title {
+                font-size: 1.3rem;
+            }
+
+            .amount {
+                font-size: 2.2rem;
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .action-card {
+                padding: 14px 10px;
+            }
+
+            .action-icon {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MOBILE TOGGLE -->
+    <div class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span class="brand-text">Earnio</span>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="dashboard.html" class="active">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="team.html">
+                    <i class="fas fa-users"></i> Referrals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tasks.html">
+                    <i class="fas fa-bolt"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="profile.html">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+
+            <li class="nav-item admin-nav" id="adminNavItem" style="display: none;">
+                <a href="admin.html">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section">
+            <div class="user-avatar" id="userAvatar">E</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarEmail">Loading...</div>
+                <div class="user-status" id="sidebarStatus">Checking...</div>
+            </div>
+            <div class="logout-btn" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <div class="greeting">Welcome back 👋</div>
+            <div class="page-title">Dashboard</div>
+        </div>
+
+        <!-- BALANCE CARD -->
+        <div class="balance-card">
+            <div class="balance-label">
+                <span class="status-dot"></span>
+                Available Balance
+            </div>
+            <div class="balance-amount">
+                <span class="currency">KES</span>
+                <span class="amount" id="balance">0</span>
+            </div>
+            <div class="balance-actions">
+                <span class="status-badge" id="accountBadge">
+                    <i class="fas fa-check-circle"></i> Active Account
+                </span>
+                <a href="withdraw.html" class="btn-outline">
+                    <i class="fas fa-arrow-up"></i> Withdraw
+                </a>
+            </div>
+        </div>
+
+        <!-- PREMIUM COURSES -->
+        <div class="section-label">Start Earning</div>
+        <a href="courses.html" class="courses-card">
+            <div class="courses-inner">
+                <div class="courses-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="courses-text">
+                    <div class="courses-title">Premium Courses</div>
+                    <div class="courses-subtitle">Learn AI, OFM, Automation & more</div>
+                </div>
+                <div class="courses-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        </a>
+
+        <!-- QUICK ACTIONS -->
+        <div class="section-label">Quick Actions</div>
+        <div class="actions-grid">
+            <a href="withdraw.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="action-label">Withdraw</div>
+                <div class="action-caption">To M-Pesa</div>
+            </a>
+            <a href="team.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="action-label">Invite</div>
+                <div class="action-caption">Earn KES 50</div>
+            </a>
+            <a href="tasks.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-tasks"></i></div>
+                <div class="action-label">Tasks</div>
+                <div class="action-caption">Daily Rewards</div>
+            </a>
+        </div>
+
+        <!-- REFERRAL SECTION -->
+        <div class="referral-card">
+            <div class="referral-header">
+                <div class="referral-title">Your Referral Link</div>
+                <span class="referral-reward"><i class="fas fa-gift"></i> KES 50 per invite</span>
+            </div>
+            <p class="referral-desc">Share your unique link and earn for every friend who joins Earnio.</p>
+            <div class="referral-box">
+                <span class="referral-link" id="referralLink">Loading...</span>
+                <button class="copy-btn" onclick="copyReferral()"><i class="fas fa-copy"></i></button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+
+            if (sidebar.classList.contains('open')) {
+                document.addEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        function closeSidebarOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                document.removeEventListener('click', closeSidebarOutside);
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch('/dashboard/data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401 || res.status === 403) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed to load data');
+                }
+
+                const data = await res.json();
+
+                // Update balance
+                document.getElementById('balance').textContent = data.wallet.balanceKES.toLocaleString();
+
+                // Update user info
+                document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
+                document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
+                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                // Referral link
+                const refCode = data.user.referral_code || data.user.id;
+                document.getElementById('referralLink').textContent = `${window.location.origin}/signup.html?ref=${refCode}`;
+
+                // Admin nav
+                if (data.user.isAdmin) {
+                    document.getElementById('adminNavItem').style.display = 'block';
+                }
+
+            } catch (err) {
+                console.error('Dashboard load error:', err);
+            }
+        }
+
+        function copyReferral() {
+            const link = document.getElementById('referralLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i>';
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy');
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        loadDashboard();
+    </script>
+</body>
+
+</html>

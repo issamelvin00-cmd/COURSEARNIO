@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Auth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-box {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .login-btn {
+            background: #2196F3;
+        }
+        .login-btn:hover {
+            background: #0b7dda;
+        }
+        #result {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #ddd;
+        }
+        .success {
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            border-left: 4px solid #f44336;
+        }
+        h1 {
+            color: #333;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Supabase Auth Test</h1>
+    
+    <div class="info">
+        <strong>Note:</strong> The first user to sign up will automatically become admin!
+    </div>
+
+    <div class="test-box">
+        <h2>Sign Up</h2>
+        <input type="email" id="signupEmail" placeholder="Email" value="admin@test.com">
+        <input type="password" id="signupPassword" placeholder="Password" value="password123">
+        <button onclick="testSignup()">Sign Up</button>
+    </div>
+
+    <div class="test-box">
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" value="admin@test.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="password123">
+        <button class="login-btn" onclick="testLogin()">Login</button>
+    </div>
+
+    <div class="test-box">
+        <h2>Test Dashboard (requires login first)</h2>
+        <button onclick="testDashboard()">Get Dashboard Data</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        let authToken = '';
+
+        async function testSignup() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Signing up...';
+            resultDiv.className = '';
+
+            try {
+                const response = await fetch('http://localhost:3000/auth/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = '✅ SIGNUP SUCCESSFUL!\n\n' + 
+                        'Email: ' + data.user.email + '\n' +
+                        'User ID: ' + data.user.id + '\n' +
+                        'Referral Code: ' + data.user.referralCode + '\n\n' +
+                        'Token saved! You can now test the dashboard.\n\n' +
+                        'Full Response:\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = '❌ SIGNUP FAILED\n\n' + 
+                        'Error: ' + data.message + '\n\n' +
+                        'Full Response:\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '❌ ERROR\n\n' + error.message;
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Logging in...';
+            resultDiv.className = '';
+
+            try {
+                const response = await fetch('http://localhost:3000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = '✅ LOGIN SUCCESSFUL!\n\n' +
+                        'Token saved!\n\n' +
+                        'Full Response:\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = '❌ LOGIN FAILED\n\n' + 
+                        'Error: ' + data.message + '\n\n' +
+                        'Full Response:\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '❌ ERROR\n\n' + error.message;
+            }
+        }
+
+        async function testDashboard() {
+            const resultDiv = document.getElementById('result');
+            
+            if (!authToken) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '❌ Please sign up or login first to get a token!';
+                return;
+            }
+
+            resultDiv.innerHTML = 'Fetching dashboard data...';
+            resultDiv.className = '';
+
+            try {
+                const response = await fetch('http://localhost:3000/dashboard/data', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = '✅ DASHBOARD DATA\n\n' +
+                        'Email: ' + data.user.email + '\n' +
+                        'Is Paid: ' + data.user.isPaid + '\n' +
+                        'Is Admin: ' + data.user.isAdmin + '\n' +
+                        'Referral Code: ' + data.user.referralCode + '\n' +
+                        'Balance: ' + data.wallet.balanceKES + ' KES\n' +
+                        'Referrals: ' + data.referrals.length + '\n\n' +
+                        'Full Response:\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = '❌ DASHBOARD FETCH FAILED\n\n' + 
+                        'Error: ' + (data.message || 'Unknown error') + '\n\n' +
+                        'Full Response:\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '❌ ERROR\n\n' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

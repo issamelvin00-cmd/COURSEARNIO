@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test Signup</title>
+</head>
+
+<body>
+    <h1>Test Signup</h1>
+    <button id="testBtn">Test Connection</button>
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const out = document.getElementById('output');
+            out.innerHTML = 'Testing...';
+
+            try {
+                // Use random email to avoid collision
+                const email = `test_${Date.now()}@example.com`;
+
+                const res = await fetch('http://localhost:3000/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: 'password123' })
+                });
+
+                const text = await res.text();
+                console.log('Raw response:', text);
+
+                try {
+                    const data = JSON.parse(text);
+                    out.innerHTML = `Status: ${res.status}<br>JSON: ${JSON.stringify(data, null, 2)}`;
+                } catch (e) {
+                    out.innerHTML = `Status: ${res.status}<br>Not JSON: ${text}`;
+                }
+
+            } catch (err) {
+                out.innerHTML = 'Fetch Error: ' + err.message;
+            }
+        });
+    </script>
+</body>
+
+</html>

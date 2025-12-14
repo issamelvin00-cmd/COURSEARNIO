@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test Payment</title>
+    <!-- Paystack Inline -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            padding: 20px;
+            background: #f0f9ff;
+        }
+
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #logs {
+            margin-top: 20px;
+            background: #1e293b;
+            color: #33e092;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <h1>Payment Debugger</h1>
+        <p>Status: <span id="authStatus">Checking Auth...</span></p>
+        <button id="payBtn" disabled>Test Paystack Popup</button>
+        <div id="logs">Logs will appear here...</div>
+    </div>
+
+    <script>
+        const logDiv = document.getElementById('logs');
+        function log(msg, data = '') {
+            const time = new Date().toLocaleTimeString();
+            const str = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            logDiv.innerHTML += `\n[${time}] ${msg} ${str}`;
+            console.log(msg, data);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        const token = localStorage.getItem('token');
+        const payBtn = document.getElementById('payBtn');
+
+        if (!token) {
+            document.getElementById('authStatus').innerHTML = '❌ No Token. <a href="login.html">Login first</a>';
+            log('Error: No JWT token found in localStorage.');
+        } else {
+            document.getElementById('authStatus').innerHTML = '✅ Authenticated';
+            payBtn.disabled = false;
+        }
+
+        payBtn.addEventListener('click', async () => {
+            log('--- Starting Payment Flow ---');
+            payBtn.disabled = true;
+            payBtn.textContent = 'Processing...';
+
+            try {
+                // 1. Check Paystack Library
+                if (typeof PaystackPop === 'undefined') {
+                    throw new Error('PaystackPop is NOT defined. The script https://js.paystack.co/v1/inline.js failed to load.');
+                }
+                log('Paystack Library: OK');
+
+                // 2. Fetch Transaction Params
+                log('Fetching backend /pay/initiate...');
+                const res = await fetch('http://localhost:3000/pay/initiate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log(`Response Status: ${res.status}`);
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`Server Error (${res.status}): ${text}`);
+                }
+
+                const data = await res.json();
+                log('Backend Data Received:', data);
+
+                if (!data.key) throw new Error('Backend did not return a Paystack Key');
+
+                // 3. Initialize Paystack
+                log('Initializing Paystack Popup...');
+                const handler = PaystackPop.setup({
+                    key: data.key,
+                    email: 'debug_user@earnio.com',
+                    amount: data.amount,
+                    currency: data.currency || 'KES',
+                    ref: data.reference,
+                    label: "DEBUG PAYMENT",
+                    onClose: function () {
+                        log('Paystack Popup: Closed by user');
+                        payBtn.disabled = false;
+                        payBtn.textContent = 'Test Paystack Popup';
+                    },
+                    callback: function (response) {
+                        log('Paystack Popup: Success!', response);
+                        alert('Payment Success! Ref: ' + response.reference);
+                        payBtn.disabled = false;
+                        payBtn.textContent = 'Paid';
+                    }
+                });
+
+                log('Opening Iframe...');
+                handler.openIframe();
+                log('Iframe Open Command Sent');
+
+            } catch (err) {
+                log('❌ ERROR:', err.message);
+                alert('Error: ' + err.message);
+                payBtn.disabled = false;
+                payBtn.textContent = 'Retry Payment';
+            }
+        });
+    </script>
+</body>
+
+</html>
