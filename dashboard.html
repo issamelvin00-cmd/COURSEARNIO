@@ -900,8 +900,15 @@
             </div>
             <div class="balance-amount">
                 <span class="currency">KES</span>
-                <span class="amount" id="balance">0</span>
+                <span class="amount" id="balanceDisplay">0.00</span>
             </div>
+
+            <div id="pendingContainer"
+                style="margin-bottom: 24px; display: none; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.9rem;">
+                <i class="fas fa-clock" style="color: #FFB020;"></i>
+                <span>Pending: KES <span id="pendingDisplay" style="color: #fff; font-weight: 600;">0.00</span></span>
+            </div>
+
             <div class="balance-actions">
                 <span class="status-badge" id="accountBadge">
                     <i class="fas fa-check-circle"></i> Active Account
@@ -1013,7 +1020,20 @@
                 const greeting = document.getElementById('userGreeting');
 
                 // Update balance
-                document.getElementById('balance').textContent = data.wallet.balanceKES.toLocaleString();
+                const balanceEl = document.getElementById('balanceDisplay') || document.getElementById('balance');
+                if (balanceEl) balanceEl.textContent = data.wallet.balanceKES.toLocaleString();
+
+                // Update pending balance
+                const pending = data.wallet.pendingCombined || 0;
+                const pendingContainer = document.getElementById('pendingContainer');
+                if (pendingContainer) {
+                    if (pending > 0) {
+                        pendingContainer.style.display = 'flex';
+                        document.getElementById('pendingDisplay').textContent = pending.toLocaleString();
+                    } else {
+                        pendingContainer.style.display = 'none';
+                    }
+                }
 
                 // Update user info
                 document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];

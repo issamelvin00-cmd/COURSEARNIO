@@ -323,6 +323,20 @@ app.get('/dashboard/data', authenticateToken, async (req, res) => {
             .select('*')
             .eq('referrer_id', userId);
 
+        // Get Pending Task Earnings
+        const { data: pendingSubmissions } = await supabaseAdmin
+            .from('task_submissions')
+            .select(`
+                status,
+                admin_tasks ( reward_kes )
+            `)
+            .eq('user_id', userId)
+            .eq('status', 'pending');
+
+        const pendingTaskEarnings = pendingSubmissions?.reduce((sum, sub) => {
+            return sum + (sub.admin_tasks?.reward_kes || 0);
+        }, 0) || 0;
+
         res.json({
             user: {
                 email: req.user.email,
@@ -331,7 +345,8 @@ app.get('/dashboard/data', authenticateToken, async (req, res) => {
                 isAdmin: !!profile.is_admin
             },
             wallet: {
-                balanceKES: (wallet?.balance_units || 0) / PAYSTACK_UNIT
+                balanceKES: (wallet?.balance_units || 0) / PAYSTACK_UNIT,
+                pendingCombined: pendingTaskEarnings // Just pending tasks for now
             },
             referrals: referrals || []
         });
