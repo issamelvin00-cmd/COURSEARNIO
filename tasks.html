@@ -180,11 +180,11 @@
                         <div style="text-align: right;">
                             <div style="color: var(--neon); font-weight: 700; margin-bottom: 6px;">+KES ${task.reward}</div>
                             ${task.completed ?
-                        '<span class="status-badge success"><i class="fas fa-check"></i> Done</span>' :
-                        (task.status === 'pending' ?
-                            '<span class="status-badge pending"><i class="fas fa-clock"></i> Pending</span>' :
-                            `<button class="list-action" onclick="completeTask('${task.id}', '${task.action_url || ''}')">Start</button>`
-                        )
+                        (task.status === 'approved' ?
+                            '<span class="status-badge success"><i class="fas fa-check"></i> Done</span>' :
+                            '<span class="status-badge pending"><i class="fas fa-clock"></i> Pending</span>'
+                        ) :
+                        `<button class="list-action" onclick="completeTask('${task.id}', '${task.action_url || ''}')">Start</button>`
                     }
                         </div>
                     </div>

@@ -1953,7 +1953,9 @@ async function processSuccessfulPayment(paystackData) {
 
 // Get all tasks (for users)
 app.get('/tasks/available', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
     try {
+        // 1. Get Active Tasks
         const { data: tasks, error } = await supabaseAdmin
             .from('admin_tasks')
             .select('*')
@@ -1965,7 +1967,31 @@ app.get('/tasks/available', authenticateToken, async (req, res) => {
             return res.status(500).json({ error: error.message });
         }
 
-        res.json(tasks || []);
+        // 2. Get User's Submissions for these tasks
+        const { data: submissions } = await supabaseAdmin
+            .from('task_submissions')
+            .select('task_id, status')
+            .eq('user_id', userId);
+
+        // 3. Map status to tasks
+        const subMap = {};
+        if (submissions) {
+            submissions.forEach(s => {
+                subMap[s.task_id] = s.status;
+            });
+        }
+
+        const formatted = tasks.map(t => ({
+            ...t,
+            // Normalizing keys for frontend
+            reward: t.reward_kes,
+            action_url: t.url,
+            // Status flags
+            status: subMap[t.id] || null,
+            completed: subMap[t.id] === 'approved' || subMap[t.id] === 'pending' // Consider pending as completed for UI to prevent re-submit
+        }));
+
+        res.json(formatted);
     } catch (err) {
         console.error('Tasks error:', err);
         res.status(500).json({ error: 'Failed to fetch tasks' });
