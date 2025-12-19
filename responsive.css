@@ -1,0 +1,149 @@
+/* ====== RESPONSIVE OVERRIDES ====== */
+/* This file is loaded LAST to override specific styles for mobile/tablet */
+
+:root {
+    --header-height: 60px;
+}
+
+/* Global Sizing Adjustments */
+html {
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+        /* Scale down base font size */
+    }
+
+    body {
+        -webkit-text-size-adjust: 100%;
+    }
+}
+
+/* Touch Targets for Mobile */
+@media (max-width: 900px) {
+
+    button,
+    .btn,
+    .nav-item a,
+    input,
+    select,
+    .action-card,
+    .course-card,
+    .feature-card {
+        min-height: 44px;
+        /* Apple Human Interface Guidelines */
+    }
+}
+
+/* Container Resets */
+@media (max-width: 1024px) {
+
+    .main-content,
+    .dashboard-container,
+    .hero,
+    .features,
+    .footer {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .sidebar {
+        /* Sidebar default hidden on tablet/mobile if not handled by JS toggling class */
+        transform: translateX(-100%);
+        box-shadow: none;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Grid & Flex Resets */
+@media (max-width: 768px) {
+
+    .grid-container,
+    .features-grid,
+    .courses-grid,
+    .actions-grid,
+    .stats-container,
+    .stats-grid,
+    .form-grid {
+        grid-template-columns: 1fr !important;
+        display: flex;
+        flex-direction: column;
+        gap: 16px !important;
+    }
+
+    .flex-row {
+        flex-direction: column !important;
+    }
+
+    /* Reverse order for specific layouts if needed */
+    .flex-reverse-mobile {
+        flex-direction: column-reverse !important;
+    }
+
+    /* Ensure images scale */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Form inputs full width */
+    .form-group,
+    .input-wrapper {
+        width: 100% !important;
+    }
+
+    /* Table Responsiveness */
+    .card-section,
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+        width: 100%;
+    }
+
+    table {
+        min-width: 600px;
+        /* Force minimum width to trigger scroll */
+    }
+
+    /* Stats grid specific */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Typography Adjustments */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2rem !important;
+        line-height: 1.2 !important;
+    }
+
+    h2 {
+        font-size: 1.5rem !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important;
+    }
+
+    .cta-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* On very small screens, 1 col for stats */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
