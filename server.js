@@ -2457,6 +2457,56 @@ app.post('/admin/course-orders/:id/action', authenticateToken, requireAdmin, asy
 });
 
 // ===================================
+// DEBUG / TEST TOOLS (ADMIN ONLY)
+// ===================================
+
+app.post('/admin/debug/set-balance', authenticateToken, async (req, res) => {
+    const { userId, amount } = req.body;
+    const adminId = req.user.id;
+
+    console.log(`[DEBUG] Admin ${adminId} setting balance for ${userId} to ${amount}`);
+
+    try {
+        // 1. Verify Admin
+        const { data: adminProfile } = await supabaseAdmin
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', adminId)
+            .single();
+
+        if (!adminProfile?.is_admin) {
+            return res.status(403).json({ message: 'Unauthorized: Admin access required' });
+        }
+
+        // 2. Validate Input
+        const newBalanceUnits = parseInt(amount) * PAYSTACK_UNIT;
+        if (isNaN(newBalanceUnits)) {
+            return res.status(400).json({ message: 'Invalid amount' });
+        }
+
+        // 3. Update Wallet Directly
+        const { error: updateError } = await supabaseAdmin
+            .from('wallets')
+            .update({ balance_units: newBalanceUnits })
+            .eq('user_id', userId);
+
+        if (updateError) {
+            console.error('[DEBUG] Wallet update failed:', updateError);
+            return res.status(500).json({ message: 'Database update failed' });
+        }
+
+        // 4. Log Action
+        console.log(`[DEBUG] SUCCESS: Set balance to ${amount} KES for user ${userId}`);
+
+        res.json({ success: true, newBalance: amount });
+
+    } catch (err) {
+        console.error('[DEBUG] Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// ===================================
 // ENHANCED ADMIN DATA ENDPOINT
 // ===================================
 

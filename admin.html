@@ -627,6 +627,38 @@
                     </table>
                 </div>
             </div>
+            <!-- Debug Tools Tab (New) -->
+            <div class="card-section"
+                style="border-color: #EF4444; background: rgba(239, 68, 68, 0.05); margin-top: 40px;">
+                <div class="card-header" style="border-bottom-color: #EF4444;">
+                    <h3 style="color: #EF4444;"><i class="fas fa-bug"></i> Debug Tools <span
+                            style="font-size: 0.8rem; font-weight: normal; opacity: 0.8;">(Developer Use Only)</span>
+                    </h3>
+                </div>
+                <div style="padding: 24px;">
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+                        Use this tool to manually set a user's wallet balance for testing purposes.
+                        <br><strong>Warning:</strong> This directly modifies the database.
+                    </p>
+                    <form id="debugBalanceForm" onsubmit="event.preventDefault(); setDebugBalance();"
+                        style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                            <label>User User ID (UUID)</label>
+                            <input type="text" id="debugUserId" placeholder="e.g. 5b9c..." required
+                                style="font-family: monospace;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; flex: 0 0 150px;">
+                            <label>Set Balance (KES)</label>
+                            <input type="number" id="debugAmount" placeholder="5000" required>
+                        </div>
+                        <button type="submit" class="btn-submit"
+                            style="background: #EF4444; color: white; height: 48px; margin-top: auto;">
+                            <i class="fas fa-save"></i> Set Balance
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -955,6 +987,47 @@
                 }
             } catch (err) {
                 alert('Failed to delete');
+            }
+        }
+
+
+        // Debug: Set Balance
+        async function setDebugBalance() {
+            const userId = document.getElementById('debugUserId').value;
+            const amount = document.getElementById('debugAmount').value;
+
+            if (!confirm(`Are you sure you want to set the balance of user ${userId} to KES ${amount}?`)) return;
+
+            try {
+                const btn = document.querySelector('#debugBalanceForm button');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                btn.disabled = true;
+
+                const res = await fetch('/admin/debug/set-balance', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId, amount })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Success! Balance updated.');
+                    loadAdminData();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed'));
+                }
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                alert('Connection failed');
             }
         }
 
