@@ -486,14 +486,14 @@ body {
 
     .reader-container {
         width: 100%;
-        max-width: 100vw;
+        max-width: 100%;
         overflow-x: hidden;
     }
 
     .reader-content {
         padding: 24px 16px;
         width: 100%;
-        max-width: 100vw;
+        max-width: 100%;
         overflow-wrap: break-word;
         word-wrap: break-word;
     }
@@ -502,7 +502,12 @@ body {
         font-size: 1.75rem;
     }
 
-    /* Prevent content blowouts */
+    /* Prevent content blowouts - AGGRESSIVE */
+    .reader-content * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
     img,
     video,
     iframe,
@@ -515,5 +520,8 @@ body {
     pre {
         overflow-x: auto;
         border-radius: 8px;
+        white-space: pre-wrap;
+        /* Wrap code if needed */
+        word-break: break-all;
     }
 }
