@@ -14,9 +14,14 @@
 
 <body>
 
-    <!-- MOBILE TOGGLE -->
-    <div class="mobile-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
+    <!-- MOBILE TOP BAR -->
+    <div class="mobile-top-bar">
+        <a href="dashboard.html" class="floating-back-btn" style="position: static; box-shadow: none;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <a href="profile.html" class="mobile-profile-btn" id="mobileProfileBtn">
+            <i class="fas fa-user-circle"></i>
+        </a>
     </div>
 
     <!-- SIDEBAR -->
@@ -47,6 +52,11 @@
             <li class="nav-item">
                 <a href="courses.html">
                     <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="resources.html">
+                    <i class="fas fa-box-open"></i> Resources
                 </a>
             </li>
             <li class="nav-item">
@@ -91,6 +101,114 @@
                 <div class="stat-value">KES <span id="earnedFromRef">0</span></div>
                 <div class="stat-label">Total Earned</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value" id="paidReferrals">0</div>
+                <div class="stat-label">Paid Members</div>
+            </div>
+        </div>
+
+        <!-- TIER STATUS -->
+        <div class="section-label">Your Referral Tier</div>
+        <div class="card" id="tierCard"
+            style="background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), transparent); border: 1px solid rgba(205, 127, 50, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-trophy" id="tierIcon" style="font-size: 1.5rem; color: #CD7F32;"></i>
+                        <div>
+                            <div style="font-size: 1.3rem; font-weight: 800;" id="tierName">Bronze Tier</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem;" id="tierDesc">0-9 referrals
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 2rem; font-weight: 800;" id="tierPercent" style="color: var(--neon);">20%
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Commission</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin: 20px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem;">
+                    <span style="color: var(--text-secondary);">Progress to next tier</span>
+                    <span id="tierProgress" style="color: var(--neon);">0 / 10 referrals</span>
+                </div>
+                <div style="height: 12px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+                    <div id="tierProgressBar"
+                        style="height: 100%; width: 0%; background: linear-gradient(90deg, #CD7F32, #FFD700); border-radius: 10px; transition: width 0.5s ease;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier Roadmap -->
+            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <div id="bronzeTier" class="tier-badge active"
+                    style="flex: 1; text-align: center; padding: 12px; background: rgba(205, 127, 50, 0.2); border-radius: 10px; border: 2px solid #CD7F32;">
+                    <i class="fas fa-medal" style="color: #CD7F32; font-size: 1.2rem;"></i>
+                    <div style="font-weight: 700; color: #CD7F32;">Bronze</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">20%</div>
+                </div>
+                <div id="silverTier" class="tier-badge"
+                    style="flex: 1; text-align: center; padding: 12px; background: rgba(192, 192, 192, 0.1); border-radius: 10px; border: 1px solid rgba(192, 192, 192, 0.3);">
+                    <i class="fas fa-medal" style="color: #C0C0C0; font-size: 1.2rem;"></i>
+                    <div style="font-weight: 700; color: #C0C0C0;">Silver</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">30%</div>
+                </div>
+                <div id="goldTier" class="tier-badge"
+                    style="flex: 1; text-align: center; padding: 12px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <i class="fas fa-crown" style="color: #FFD700; font-size: 1.2rem;"></i>
+                    <div style="font-weight: 700; color: #FFD700;">Gold</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">40%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EARNINGS GRAPH -->
+        <div class="section-label">Earnings Breakdown</div>
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="font-weight: 600;">Your Referral Earnings</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Total: <span style="color: var(--neon); font-weight: 700;">KES <span id="graphTotal">0</span></span>
+                </div>
+            </div>
+
+            <!-- Bar Chart -->
+            <div id="earningsChart"
+                style="display: flex; align-items: flex-end; gap: 12px; height: 160px; padding: 10px 0;">
+                <div class="chart-bar" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                    <div style="flex: 1; width: 100%; display: flex; align-items: flex-end;">
+                        <div id="signupBar"
+                            style="width: 100%; background: linear-gradient(180deg, var(--neon), #00CC52); border-radius: 8px 8px 0 0; min-height: 10px; transition: height 0.5s ease;">
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 8px; text-align: center;">
+                        Signups</div>
+                    <div id="signupAmount" style="font-size: 0.85rem; font-weight: 700; color: var(--neon);">KES 0</div>
+                </div>
+                <div class="chart-bar" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                    <div style="flex: 1; width: 100%; display: flex; align-items: flex-end;">
+                        <div id="courseBar"
+                            style="width: 100%; background: linear-gradient(180deg, #3B82F6, #1D4ED8); border-radius: 8px 8px 0 0; min-height: 10px; transition: height 0.5s ease;">
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 8px; text-align: center;">
+                        Courses</div>
+                    <div id="courseAmount" style="font-size: 0.85rem; font-weight: 700; color: #3B82F6;">KES 0</div>
+                </div>
+                <div class="chart-bar" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                    <div style="flex: 1; width: 100%; display: flex; align-items: flex-end;">
+                        <div id="pendingBar"
+                            style="width: 100%; background: linear-gradient(180deg, #F59E0B, #D97706); border-radius: 8px 8px 0 0; min-height: 10px; transition: height 0.5s ease;">
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 8px; text-align: center;">
+                        Pending</div>
+                    <div id="pendingAmount" style="font-size: 0.85rem; font-weight: 700; color: #F59E0B;">KES 0</div>
+                </div>
+            </div>
         </div>
 
         <!-- REFERRAL LINK -->
@@ -98,7 +216,8 @@
         <div class="card">
             <p style="color: var(--text-secondary); margin-bottom: 16px;">
                 Share your unique link and earn <span style="color: var(--neon); font-weight: 600;">KES 50</span> for
-                every friend who joins Earnio.
+                every friend who joins + <span id="commissionText"
+                    style="color: var(--neon); font-weight: 600;">20%</span> on courses!
             </p>
             <div class="ref-box">
                 <span id="referralLink"
@@ -159,7 +278,32 @@
                 // User info
                 document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
                 document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
-                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+                // Avatar Logic
+                const sidebarAv = document.getElementById('userAvatar');
+                const mobileBtn = document.getElementById('mobileProfileBtn');
+
+                if (data.user.avatar_url) {
+                    const imgTag = `<img src="assets/avatars/${data.user.avatar_url}.png" style="width:100%; height:100%; border-radius:inherit; object-fit:cover;">`;
+
+                    if (sidebarAv) {
+                        sidebarAv.innerHTML = imgTag;
+                        sidebarAv.style.background = 'transparent';
+                    }
+                    if (mobileBtn) {
+                        mobileBtn.innerHTML = imgTag;
+                        mobileBtn.style.padding = '0';
+                        mobileBtn.style.width = '36px';
+                        mobileBtn.style.height = '36px';
+                        mobileBtn.style.borderRadius = '50%';
+                        mobileBtn.style.overflow = 'hidden';
+                        mobileBtn.style.border = '2px solid var(--neon)';
+                        mobileBtn.style.display = 'flex';
+                        mobileBtn.style.alignItems = 'center';
+                        mobileBtn.style.justifyContent = 'center';
+                    }
+                } else if (sidebarAv) {
+                    sidebarAv.textContent = data.user.email.charAt(0).toUpperCase();
+                }
 
                 // Admin
                 if (data.user.isAdmin) {
@@ -211,8 +355,133 @@
             window.location.href = 'login.html';
         }
 
+        // Load tier status
+        async function loadTierStatus() {
+            try {
+                const res = await fetch('/referrals/tier-status', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+
+                const data = await res.json();
+
+                // Update tier display
+                const tierColors = {
+                    'Bronze': { color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)', border: 'rgba(205, 127, 50, 0.3)' },
+                    'Silver': { color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)', border: 'rgba(192, 192, 192, 0.3)' },
+                    'Gold': { color: '#FFD700', bg: 'rgba(255, 215, 0, 0.1)', border: 'rgba(255, 215, 0, 0.3)' }
+                };
+
+                const tier = data.currentTier.name;
+                const tierStyle = tierColors[tier] || tierColors['Bronze'];
+
+                document.getElementById('tierName').textContent = tier + ' Tier';
+                document.getElementById('tierDesc').textContent = `${data.currentTier.minReferrals}+ referrals`;
+                document.getElementById('tierPercent').textContent = data.currentTier.percent + '%';
+                document.getElementById('tierIcon').style.color = tierStyle.color;
+                document.getElementById('commissionText').textContent = data.currentTier.percent + '%';
+
+                // Update card styling
+                const tierCard = document.getElementById('tierCard');
+                tierCard.style.background = `linear-gradient(135deg, ${tierStyle.bg}, transparent)`;
+                tierCard.style.borderColor = tierStyle.border;
+
+                // Progress bar
+                if (data.nextTier) {
+                    document.getElementById('tierProgress').textContent =
+                        `${data.currentReferrals} / ${data.nextTier.minReferrals} referrals`;
+
+                    const prevMin = data.currentTier.minReferrals;
+                    const nextMin = data.nextTier.minReferrals;
+                    const progress = ((data.currentReferrals - prevMin) / (nextMin - prevMin)) * 100;
+                    document.getElementById('tierProgressBar').style.width = `${Math.min(progress, 100)}%`;
+                } else {
+                    document.getElementById('tierProgress').textContent = `${data.currentReferrals} referrals (MAX!)`;
+                    document.getElementById('tierProgressBar').style.width = '100%';
+                }
+
+                // Update paid referrals count
+                document.getElementById('paidReferrals').textContent = data.paidReferrals || 0;
+
+                // Highlight current tier badge
+                document.querySelectorAll('.tier-badge').forEach(el => {
+                    el.style.opacity = '0.5';
+                    el.style.borderWidth = '1px';
+                });
+                const currentTierBadge = document.getElementById(tier.toLowerCase() + 'Tier');
+                if (currentTierBadge) {
+                    currentTierBadge.style.opacity = '1';
+                    currentTierBadge.style.borderWidth = '2px';
+                }
+
+            } catch (err) {
+                console.error('Tier status error:', err);
+            }
+        }
+
+        // Load earnings breakdown for graph
+        async function loadEarningsBreakdown() {
+            try {
+                const res = await fetch('/wallet/earnings-breakdown', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+
+                const data = await res.json();
+
+                const signupTotal = data.signupBonus?.totalKES || 0;
+                const courseTotal = data.courseCommissions?.reduce((sum, c) => sum + c.totalKES, 0) || 0;
+                const pendingTotal = data.pending || 0;
+                const total = signupTotal + courseTotal;
+
+                // Update amounts
+                document.getElementById('signupAmount').textContent = 'KES ' + signupTotal.toLocaleString();
+                document.getElementById('courseAmount').textContent = 'KES ' + courseTotal.toLocaleString();
+                document.getElementById('pendingAmount').textContent = 'KES ' + pendingTotal.toLocaleString();
+                document.getElementById('graphTotal').textContent = total.toLocaleString();
+                document.getElementById('earnedFromRef').textContent = total.toLocaleString();
+
+                // Calculate bar heights (max 100px)
+                const maxAmount = Math.max(signupTotal, courseTotal, pendingTotal, 1);
+                const maxHeight = 100;
+
+                document.getElementById('signupBar').style.height = Math.max(10, (signupTotal / maxAmount) * maxHeight) + 'px';
+                document.getElementById('courseBar').style.height = Math.max(10, (courseTotal / maxAmount) * maxHeight) + 'px';
+                document.getElementById('pendingBar').style.height = Math.max(10, (pendingTotal / maxAmount) * maxHeight) + 'px';
+
+            } catch (err) {
+                console.error('Earnings breakdown error:', err);
+            }
+        }
+
         loadData();
+        loadTierStatus();
+        loadEarningsBreakdown();
     </script>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="mobile-bottom-nav">
+        <a href="dashboard.html" class="nav-tab">
+            <i class="fas fa-th-large"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-tab">
+            <i class="fas fa-bolt"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="courses.html" class="nav-tab">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Learn</span>
+        </a>
+        <a href="team.html" class="nav-tab active">
+            <i class="fas fa-users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-tab">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
 </body>
 
 </html>

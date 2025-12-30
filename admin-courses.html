@@ -1090,6 +1090,12 @@ You can still use HTML tags if needed, but plain text works great!"></textarea>
                             <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ch.title}</div>
                             ${ch.category ? `<div style="font-size: 0.8rem; color: var(--text-secondary);">${ch.category}</div>` : ''}
                         </div>
+                        <button onclick="openChapterTasks(${ch.id}, '${(ch.title || '').replace(/'/g, "\\'")}')" title="Manage Tasks" style="padding: 8px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10B981; cursor: pointer; margin-right: 4px;">
+                            <i class="fas fa-check-square"></i>
+                        </button>
+                        <button onclick="openChapterResources(${ch.id}, '${(ch.title || '').replace(/'/g, "\\'")}')" title="Manage Resources" style="padding: 8px 12px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; color: #3B82F6; cursor: pointer; margin-right: 4px;">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
                         <button onclick="editChapter(${ch.id})" style="padding: 8px 12px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); cursor: pointer;">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -1186,6 +1192,236 @@ You can still use HTML tags if needed, but plain text works great!"></textarea>
         loadCourses();
     </script>
 
+
+    <!-- Chapter Resources Modal -->
+    <div class="modal-overlay" id="chapterResourcesModal">
+        <div class="modal" style="max-width: 600px;">
+            <h2><i class="fas fa-paperclip" style="color: #3B82F6;"></i> Chapter Resources</h2>
+            <p id="resChapterTitle" style="color: var(--text-secondary); margin-bottom: 20px;"></p>
+
+            <div id="chapterResList" style="margin-bottom: 20px;"></div>
+
+            <div class="add-resource-form"
+                style="background: var(--surface-color); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 12px; color: var(--text-primary);">Add New Resource</h4>
+                <div class="form-group">
+                    <select id="newChapResType" style="margin-bottom: 8px;">
+                        <option value="video">Video</option>
+                        <option value="tool">Tool</option>
+                        <option value="document">Document</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="newChapResTitle" placeholder="Title (e.g. Intro Video)"
+                        style="margin-bottom: 8px;">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="newChapResUrl" placeholder="URL" style="margin-bottom: 8px;">
+                </div>
+                <button type="button" class="btn-submit" onclick="addChapterResource()" style="width: 100%;">
+                    <i class="fas fa-plus"></i> Add Resource
+                </button>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal('chapterResourcesModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chapter Tasks Modal -->
+    <div class="modal-overlay" id="chapterTasksModal">
+        <div class="modal" style="max-width: 600px;">
+            <h2><i class="fas fa-check-square" style="color: #10B981;"></i> Chapter Tasks</h2>
+            <p id="taskChapterTitle" style="color: var(--text-secondary); margin-bottom: 20px;"></p>
+
+            <div id="chapterTaskList" style="margin-bottom: 20px;"></div>
+
+            <div class="add-resource-form"
+                style="background: var(--surface-color); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 12px; color: var(--text-primary);">Add New Task</h4>
+                <div class="form-group">
+                    <input type="text" id="newChapTaskTitle" placeholder="Task Title (e.g. Watch video)"
+                        style="margin-bottom: 8px;">
+                </div>
+                <button type="button" class="btn-submit" onclick="addChapterTask()" style="width: 100%;">
+                    <i class="fas fa-plus"></i> Add Task
+                </button>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal('chapterTasksModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===========================================
+        // CHAPTER RESOURCES MANAGMENT
+        // ===========================================
+        let activeChapterId = null;
+
+        function openChapterResources(chapterId, title) {
+            activeChapterId = chapterId;
+            document.getElementById('resChapterTitle').textContent = title;
+            document.getElementById('chapterResourcesModal').classList.add('active');
+            loadChapterResources(chapterId);
+        }
+
+        async function loadChapterResources(chapterId) {
+            const list = document.getElementById('chapterResList');
+            list.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            try {
+                const res = await fetch(`/chapters/${chapterId}/resources`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const resources = await res.json();
+
+                if (resources.length === 0) {
+                    list.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 20px;">No resources yet.</div>';
+                    return;
+                }
+
+                list.innerHTML = resources.map(r => `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 6px;">
+                                <i class="fas ${r.type === 'video' ? 'fa-play' : (r.type === 'tool' ? 'fa-tools' : 'fa-file-alt')}"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">${r.title}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.url}</div>
+                            </div>
+                        </div>
+                        <button onclick="deleteChapterResource(${r.id})" style="color: #EF4444; background: none; border: none; cursor: pointer; padding: 4px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = 'Error loading resources';
+            }
+        }
+
+        async function addChapterResource() {
+            const type = document.getElementById('newChapResType').value;
+            const title = document.getElementById('newChapResTitle').value;
+            const url = document.getElementById('newChapResUrl').value;
+
+            if (!title || !url) return alert('Fill all fields');
+
+            try {
+                const res = await fetch(`/admin/chapters/${activeChapterId}/resources`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ type, title, url })
+                });
+
+                if (res.ok) {
+                    document.getElementById('newChapResTitle').value = '';
+                    document.getElementById('newChapResUrl').value = '';
+                    loadChapterResources(activeChapterId);
+                } else {
+                    alert('Failed to add resource');
+                }
+            } catch (err) {
+                alert('Error adding resource');
+            }
+        }
+
+        async function deleteChapterResource(id) {
+            if (!confirm('Remove this resource?')) return;
+            try {
+                await fetch(`/admin/chapter-resources/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                loadChapterResources(activeChapterId);
+            } catch (err) {
+                alert('Error deleting');
+            }
+        }
+
+        // ===========================================
+        // CHAPTER TASKS MANAGMENT
+        // ===========================================
+
+        function openChapterTasks(chapterId, title) {
+            activeChapterId = chapterId;
+            document.getElementById('taskChapterTitle').textContent = title;
+            document.getElementById('chapterTasksModal').classList.add('active');
+            loadChapterTasks(chapterId);
+        }
+
+        async function loadChapterTasks(chapterId) {
+            const list = document.getElementById('chapterTaskList');
+            list.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            try {
+                const res = await fetch(`/chapters/${chapterId}/tasks`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const tasks = await res.json();
+
+                if (tasks.length === 0) {
+                    list.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 20px;">No tasks yet.</div>';
+                    return;
+                }
+
+                list.innerHTML = tasks.map(t => `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 24px; height: 24px; border: 2px solid var(--text-secondary); border-radius: 6px;"></div>
+                            <div style="font-weight: 500;">${t.title}</div>
+                        </div>
+                        <button onclick="deleteChapterTask(${t.id})" style="color: #EF4444; background: none; border: none; cursor: pointer; padding: 4px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = 'Error loading tasks';
+            }
+        }
+
+        async function addChapterTask() {
+            const title = document.getElementById('newChapTaskTitle').value;
+            if (!title) return alert('Title required');
+
+            try {
+                const res = await fetch(`/admin/chapters/${activeChapterId}/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ title, type: 'checkbox' })
+                });
+
+                if (res.ok) {
+                    document.getElementById('newChapTaskTitle').value = '';
+                    loadChapterTasks(activeChapterId);
+                } else {
+                    alert('Failed to add task');
+                }
+            } catch (err) {
+                alert('Error adding task');
+            }
+        }
+
+        async function deleteChapterTask(id) {
+            if (!confirm('Remove this task?')) return;
+            try {
+                await fetch(`/admin/tasks/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                loadChapterTasks(activeChapterId);
+            } catch (err) {
+                alert('Error deleting');
+            }
+        }
+    </script>
 </body>
 
 </html>

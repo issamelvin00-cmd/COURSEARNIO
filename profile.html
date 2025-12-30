@@ -9,13 +9,17 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="luxury-theme.css">
+    <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
 
-    <!-- MOBILE TOGGLE -->
-    <div class="mobile-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
+    <!-- MOBILE TOP BAR -->
+    <div class="mobile-top-bar">
+        <a href="dashboard.html" class="floating-back-btn" style="position: static; box-shadow: none;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <!-- No profile button on profile page -->
     </div>
 
     <!-- SIDEBAR -->
@@ -46,6 +50,11 @@
             <li class="nav-item">
                 <a href="courses.html">
                     <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="resources.html">
+                    <i class="fas fa-box-open"></i> Resources
                 </a>
             </li>
             <li class="nav-item">
@@ -84,9 +93,39 @@
         <div class="card" style="max-width: 600px;">
             <div class="section-label" style="margin-top: 0;">Account Information</div>
 
+            <div class="avatar-selection" style="text-align: center; margin-bottom: 24px;">
+                <div style="position: relative; display: inline-block;">
+                    <img id="mainProfileImg" src="assets/avatars/owl.png" alt="Profile"
+                        style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--neon); object-fit: cover;">
+                    <div
+                        style="position: absolute; bottom: 0; right: 0; background: var(--bg-color); border-radius: 50%; padding: 4px;">
+                        <i class="fas fa-camera" style="color: var(--text-secondary); font-size: 0.9rem;"></i>
+                    </div>
+                </div>
+
+                <div class="avatar-options"
+                    style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+                    <img src="assets/avatars/owl.png" onclick="selectAvatar('owl')" class="avatar-option" data-id="owl"
+                        style="width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; opacity: 0.7; transition: all 0.2s;">
+                    <img src="assets/avatars/turtle.png" onclick="selectAvatar('turtle')" class="avatar-option"
+                        data-id="turtle"
+                        style="width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; opacity: 0.7; transition: all 0.2s;">
+                    <img src="assets/avatars/ray.png" onclick="selectAvatar('ray')" class="avatar-option" data-id="ray"
+                        style="width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; opacity: 0.7; transition: all 0.2s;">
+                    <img src="assets/avatars/lion.png" onclick="selectAvatar('lion')" class="avatar-option"
+                        data-id="lion"
+                        style="width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; opacity: 0.7; transition: all 0.2s;">
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Email Address</label>
                 <input type="email" id="email" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Choose a username">
             </div>
 
             <div class="form-group">
@@ -121,11 +160,43 @@
             </div>
         </div>
 
+        <!-- ADMIN PANEL BUTTON (Mobile/Main View) -->
+        <a href="admin.html" id="mobileAdminBtn"
+            style="display: none; text-decoration: none; width: 100%; max-width: 600px; padding: 16px; background: rgba(139, 92, 246, 0.1); color: #8B5CF6; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; margin-top: 16px; font-weight: 600; cursor: pointer; text-align: center;">
+            <i class="fas fa-shield-alt"></i> Access Admin Panel
+        </a>
+
+        <!-- LOGOUT BUTTON (Mobile/Main View) -->
+        <button onclick="logout()"
+            style="width: 100%; max-width: 600px; padding: 16px; background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; margin-top: 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-sign-out-alt"></i> Log Out
+        </button>
+
     </div>
 
     <script>
         const token = localStorage.getItem('token');
         if (!token) window.location.href = 'login.html';
+
+        let currentAvatar = 'owl';
+
+        function selectAvatar(id) {
+            currentAvatar = id;
+            document.getElementById('mainProfileImg').src = `assets/avatars/${id}.png`;
+
+            // Highlight selected
+            document.querySelectorAll('.avatar-option').forEach(img => {
+                if (img.dataset.id === id) {
+                    img.style.border = '2px solid var(--neon)';
+                    img.style.opacity = '1';
+                    img.style.transform = 'scale(1.1)';
+                } else {
+                    img.style.border = '2px solid transparent';
+                    img.style.opacity = '0.7';
+                    img.style.transform = 'scale(1)';
+                }
+            });
+        }
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -161,13 +232,34 @@
 
                 const data = await res.json();
 
-                // Sidebar
+                // Set Avatar state
+                if (data.user.avatar_url) {
+                    currentAvatar = data.user.avatar_url;
+                }
+                selectAvatar(currentAvatar);
+
+                // Populate Inputs
+                document.getElementById('email').value = data.user.email;
+                document.getElementById('fullName').value = data.user.full_name || '';
+                document.getElementById('phone').value = data.user.phone || '';
+                document.getElementById('username').value = data.user.username || '';
+
+                // Sidebar Logic
                 document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
                 document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
-                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                // Sidebar Avatar
+                const sidebarAv = document.getElementById('userAvatar');
+                if (data.user.avatar_url) {
+                    sidebarAv.innerHTML = `<img src="assets/avatars/${data.user.avatar_url}.png" style="width:100%; height:100%; border-radius:12px; object-fit:cover;">`;
+                    sidebarAv.style.background = 'transparent';
+                } else {
+                    sidebarAv.textContent = data.user.email.charAt(0).toUpperCase();
+                }
 
                 if (data.user.isAdmin) {
                     document.getElementById('adminNavItem').style.display = 'block';
+                    document.getElementById('mobileAdminBtn').style.display = 'block';
                 }
 
                 // Form
@@ -192,6 +284,12 @@
         async function saveProfile() {
             const phone = document.getElementById('phone').value;
             const fullName = document.getElementById('fullName').value;
+            const username = document.getElementById('username').value;
+            const btn = document.querySelector('.btn-primary');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
 
             try {
                 const res = await fetch('/profile', {
@@ -200,18 +298,31 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ phone, full_name: fullName })
+                    body: JSON.stringify({
+                        phone,
+                        full_name: fullName,
+                        avatar_url: currentAvatar,
+                        username: username
+                    })
                 });
 
                 const data = await res.json();
 
                 if (data.success) {
+                    // Update sidebar avatar immediately
+                    const sidebarAv = document.getElementById('userAvatar');
+                    sidebarAv.innerHTML = `<img src="assets/avatars/${currentAvatar}.png" style="width:100%; height:100%; border-radius:12px; object-fit:cover;">`;
+                    sidebarAv.style.background = 'transparent';
+
                     alert('Profile updated successfully!');
                 } else {
                     alert(data.message || 'Failed to update');
                 }
             } catch (err) {
                 alert('Failed to save profile');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
 
@@ -222,6 +333,30 @@
 
         loadData();
     </script>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="mobile-bottom-nav">
+        <a href="dashboard.html" class="nav-tab">
+            <i class="fas fa-th-large"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-tab">
+            <i class="fas fa-bolt"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="courses.html" class="nav-tab">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Learn</span>
+        </a>
+        <a href="team.html" class="nav-tab">
+            <i class="fas fa-users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-tab active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
 </body>
 
 </html>

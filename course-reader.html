@@ -7,692 +7,472 @@
     <title>Course Reader - Earnio</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="reader.css">
     <style>
-        :root {
-            --bg-color: #0a0a0a;
-            --surface-color: #141414;
-            --sidebar-bg: #0f0f0f;
-            --primary-color: #39FF14;
-            --primary-dim: rgba(57, 255, 20, 0.1);
-            --text-primary: #FAFAFA;
-            --text-secondary: #71717A;
-            --border-color: #27272A;
-            --sidebar-width: 320px;
+        /* Utility overrides or specific tweaks */
+        .hidden {
+            display: none !important;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, sans-serif;
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
         }
 
-        body {
-            background: var(--bg-color);
-            color: var(--text-primary);
-            min-height: 100vh;
-        }
-
-        /* Layout */
-        .reader-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 100;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            margin-bottom: 16px;
-            transition: color 0.2s;
-        }
-
-        .back-btn:hover {
-            color: var(--primary-color);
-        }
-
-        .course-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            line-height: 1.3;
-        }
-
-        .progress-bar {
-            margin-top: 16px;
-            height: 4px;
-            background: var(--border-color);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-color);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .progress-text {
-            margin-top: 8px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        /* Chapter List */
-        .chapter-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-        }
-
-        .chapter-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 6px;
-        }
-
-        .chapter-item:hover {
-            background: var(--surface-color);
-        }
-
-        .chapter-item.active {
-            background: var(--primary-dim);
-            border: 1px solid rgba(57, 255, 20, 0.2);
-        }
-
-        .chapter-num {
-            width: 28px;
-            height: 28px;
-            background: var(--surface-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .chapter-item.active .chapter-num {
-            background: var(--primary-color);
-            color: #000;
-        }
-
-        .chapter-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .chapter-name {
-            font-size: 0.9rem;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .chapter-category {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 2px;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-        }
-
-        .content-header {
-            position: sticky;
-            top: 0;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 16px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 50;
-        }
-
-        .chapter-title-header {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .nav-btn {
-            padding: 10px 16px;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .nav-btn:hover:not(:disabled) {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .nav-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        /* Reading Pane */
-        .reading-pane {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 32px 80px;
-        }
-
-        .chapter-heading {
-            margin-bottom: 32px;
-        }
-
-        .chapter-heading h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: -0.5px;
-        }
-
-        .chapter-heading .category {
-            display: inline-block;
-            margin-top: 12px;
-            padding: 6px 12px;
-            background: var(--primary-dim);
-            color: var(--primary-color);
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        /* Content Styles */
-        .chapter-content {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #d4d4d8;
-            white-space: pre-line;
-            /* Preserves newlines from plain text */
-        }
-
-        .chapter-content h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 32px 0 16px;
-            color: var(--text-primary);
-        }
-
-        .chapter-content h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin: 24px 0 12px;
-            color: var(--text-primary);
-        }
-
-        .chapter-content p {
-            margin-bottom: 16px;
-        }
-
-        .chapter-content ul,
-        .chapter-content ol {
-            margin: 16px 0;
-            padding-left: 24px;
-        }
-
-        .chapter-content li {
-            margin-bottom: 8px;
-        }
-
-        .chapter-content code {
-            background: var(--surface-color);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9em;
-        }
-
-        .chapter-content pre {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            overflow-x: auto;
-            margin: 20px 0;
-        }
-
-        .chapter-content blockquote {
-            border-left: 4px solid var(--primary-color);
-            padding-left: 20px;
-            margin: 20px 0;
-            color: var(--text-secondary);
-            font-style: italic;
-        }
-
-        /* Loading & Error */
-        .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 60vh;
-            color: var(--text-secondary);
-        }
-
-        .loading-state i {
-            font-size: 2rem;
-            color: var(--primary-color);
-            margin-bottom: 16px;
-        }
-
-        /* Mobile Toggle - Refined for better UX */
-        .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 12px;
-            left: 12px;
-            z-index: 200;
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--surface-color), #1a1a1a);
-            border: 1px solid var(--primary-color);
-            border-radius: 10px;
-            color: var(--primary-color);
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(57, 255, 20, 0.15);
-            transition: all 0.2s ease;
-        }
-
-        .mobile-toggle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(57, 255, 20, 0.25);
-        }
-
-        .mobile-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 90;
-        }
-
-        /* Mobile Styles */
-        @media (max-width: 900px) {
-            .sidebar {
-                transform: translateX(-100%);
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
             }
 
-            .sidebar.open {
-                transform: translateX(0);
-                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
-            }
-
-            .mobile-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .sidebar.open+.mobile-overlay {
-                display: block;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .content-header {
-                padding: 12px 16px;
-                padding-left: 60px;
-                gap: 12px;
-            }
-
-            .chapter-title-header {
-                font-size: 0.9rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                max-width: 50%;
-            }
-
-            .nav-btn {
-                padding: 8px 12px;
-                font-size: 0.8rem;
-            }
-
-            .reading-pane {
-                padding: 24px 20px 100px;
-            }
-
-            .chapter-heading h1 {
-                font-size: 1.6rem;
-                line-height: 1.3;
-            }
-
-            .chapter-content {
-                font-size: 1.05rem;
-                line-height: 1.6;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="reader-layout">
-        <!-- Mobile Toggle -->
-        <button class="mobile-toggle" onclick="toggleSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
 
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <a href="courses.html" class="back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Courses
-                </a>
-                <h2 class="course-title" id="courseTitle">Loading...</h2>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-text" id="progressText">0 of 0 chapters</div>
+    <div class="reader-container">
+        <!-- Sticky Header (Progress) -->
+        <header class="progress-header">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="course-info" id="courseTitleHeader">Loading course...</div>
             </div>
-            <div id="videoResources"
-                style="padding: 12px; border-bottom: 1px solid var(--border-color); display: none;">
-                <!-- Video links will be injected here -->
-            </div>
-            <div class="chapter-list" id="chapterList">
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-            </div>
-        </aside>
 
-        <!-- Mobile Overlay -->
-        <div class="mobile-overlay" onclick="toggleSidebar()"></div>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="content-header">
-                <span class="chapter-title-header" id="chapterTitleHeader">Select a chapter</span>
-                <div class="nav-buttons">
-                    <button class="nav-btn" id="prevBtn" onclick="prevChapter()" disabled>
-                        <i class="fas fa-chevron-left"></i> Prev
-                    </button>
-                    <button class="nav-btn" id="nextBtn" onclick="nextChapter()" disabled>
-                        Next <i class="fas fa-chevron-right"></i>
-                    </button>
+            <div class="global-progress">
+                <div class="progress-track">
+                    <div class="progress-fill" id="globalProgressFill"></div>
                 </div>
-            </header>
-
-            <div class="reading-pane" id="readingPane">
-                <div class="loading-state">
-                    <i class="fas fa-book-open"></i>
-                    <p>Select a chapter to start reading</p>
-                </div>
+                <div class="progress-pct" id="globalProgressPct">0%</div>
             </div>
-        </main>
+        </header>
+
+        <div class="reader-main">
+            <!-- Sidebar (Chapters) -->
+            <aside class="reader-sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <a href="courses.html" class="back-link" style="margin:0;">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                        <button onclick="reader.showCourseResources()"
+                            style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">
+                            <i class="fas fa-box-open"></i> Course Resources
+                        </button>
+                    </div>
+                    <h2 class="sidebar-title">Chapters</h2>
+                </div>
+                <div class="chapter-list" id="chapterList">
+                    <!-- Chapters injected here -->
+                </div>
+            </aside>
+
+            <!-- Main Reading Pane -->
+            <main class="reader-content" id="readingPane">
+                <div class="content-wrapper" id="contentWrapper">
+                    <div style="padding: 40px; text-align: center; color: var(--reader-text-dim);">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = 'login.html';
+        // State Management
+        class CourseReader {
+            constructor() {
+                this.courseId = new URLSearchParams(window.location.search).get('id');
+                this.token = localStorage.getItem('token');
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const courseId = urlParams.get('id');
-        if (!courseId) window.location.href = 'courses.html';
+                if (!this.token) window.location.href = 'login.html';
+                if (!this.courseId) window.location.href = 'courses.html';
 
-        let courseData = null;
-        let chapters = [];
-        let currentChapterIndex = 0;
-        let progress = { last_chapter_id: null, completed_chapters: [] };
+                this.state = {
+                    course: null,
+                    chapters: [],
+                    currentChapter: null,
+                    resources: [], // Chapter resources
+                    courseResources: [], // Global resources
+                    tasks: [],
+                    completedChapters: new Set(), // IDs
+                    completedTasks: new Set(), // IDs
+                    progress: 0
+                };
+            }
 
-        async function init() {
-            try {
-                // Load course info
-                const courseRes = await fetch(`/courses/${courseId}`);
-                courseData = await courseRes.json();
-                document.getElementById('courseTitle').textContent = courseData.title;
-                document.title = `${courseData.title} - Earnio Reader`;
-
-                // Render Resources (Videos & Tools)
+            async init() {
                 try {
-                    const resRes = await fetch(`/courses/${courseId}/resources`);
-                    const resources = await resRes.json();
+                    await Promise.all([
+                        this.loadCourseInfo(),
+                        this.loadChapters(),
+                        this.loadGlobalProgress(),
+                        this.loadCourseResources()
+                    ]);
 
-                    if (resources.length > 0) {
-                        const videoContainer = document.getElementById('videoResources');
-                        let html = '';
+                    this.renderSidebar();
 
-                        const videos = resources.filter(r => r.type === 'video');
-                        const tools = resources.filter(r => r.type === 'tool');
+                    // Determine which chapter to load
+                    const lastChapterId = this.state.lastViewedChapterId;
+                    let chapterToLoad = this.state.chapters[0];
 
-                        if (videos.length > 0) {
-                            html += '<div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Course Videos</div>';
-                            html += videos.map(v => `
-                                <a href="${v.url}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; color: #3B82F6; text-decoration: none; font-size: 0.85rem; margin-bottom: 6px; transition: all 0.2s;">
-                                    <i class="fas fa-video"></i> ${v.title}
-                                </a>
-                            `).join('');
-                        }
-
-                        if (tools.length > 0) {
-                            html += '<div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin: 12px 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Tools & Downloads</div>';
-                            html += tools.map(t => `
-                                <a href="${t.url}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; color: #10B981; text-decoration: none; font-size: 0.85rem; margin-bottom: 6px; transition: all 0.2s;">
-                                    <i class="fas fa-tools"></i> ${t.title}
-                                </a>
-                            `).join('');
-                        }
-
-                        if (html) {
-                            videoContainer.innerHTML = html;
-                            videoContainer.style.display = 'block';
-                        }
+                    if (lastChapterId) {
+                        const found = this.state.chapters.find(c => c.id === lastChapterId);
+                        if (found) chapterToLoad = found;
                     }
-                } catch (e) {
-                    console.error('Resource fetch error:', e);
+
+                    if (chapterToLoad) {
+                        await this.loadChapter(chapterToLoad.id);
+                    }
+                } catch (err) {
+                    console.error('Init failed:', err);
+                    document.getElementById('contentWrapper').innerHTML = `
+                        <div style="text-align: center; color: #ff4444; padding: 40px;">
+                            <h3>Failed to load course</h3>
+                            <button onclick="window.location.reload()" style="margin-top: 16px; padding: 8px 16px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry</button>
+                        </div>
+                    `;
                 }
+            }
 
-                // Load chapters
-                const chaptersRes = await fetch(`/courses/${courseId}/chapters`);
-                chapters = await chaptersRes.json();
+            async loadCourseInfo() {
+                const res = await fetch(`/courses/${this.courseId}`);
+                const data = await res.json();
+                this.state.course = data;
+                document.getElementById('courseTitleHeader').textContent = data.title;
+                document.title = `${data.title} - Reader`;
+            }
 
-                // Load progress
+            async loadCourseResources() {
                 try {
-                    const progressRes = await fetch(`/courses/${courseId}/progress`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
+                    const res = await fetch(`/courses/${this.courseId}/resources`);
+                    this.state.courseResources = await res.json();
+                } catch (e) { console.error('Failed to load course resources'); }
+            }
+
+            async loadChapters() {
+                const res = await fetch(`/courses/${this.courseId}/chapters`);
+                this.state.chapters = await res.json();
+            }
+
+            async loadGlobalProgress() {
+                const res = await fetch(`/courses/${this.courseId}/progress`, {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+                const data = await res.json();
+                this.state.completedChapters = new Set(data.completed_chapters || []);
+                this.state.lastViewedChapterId = data.last_chapter_id;
+                this.updateGlobalProgressUI();
+            }
+
+            async loadChapter(chapterId) {
+                // Update Sidebar Selection
+                this.state.currentChapter = this.state.chapters.find(c => c.id === chapterId);
+                this.renderSidebar(); // Re-render to show active state
+
+                // Close mobile sidebar
+                document.getElementById('sidebar').classList.remove('open');
+
+                // Loading State
+                const wrapper = document.getElementById('contentWrapper');
+                wrapper.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--reader-text-dim);"><i class="fas fa-spinner fa-spin fa-2x"></i></div>`;
+                window.scrollTo(0, 0);
+
+                try {
+                    // Fetch Content, Resources, Tasks in parallel
+                    const [contentRes, resourcesRes, tasksRes] = await Promise.all([
+                        fetch(`/chapters/${chapterId}`, { headers: { 'Authorization': `Bearer ${this.token}` } }),
+                        fetch(`/chapters/${chapterId}/resources`, { headers: { 'Authorization': `Bearer ${this.token}` } }),
+                        fetch(`/chapters/${chapterId}/tasks`, { headers: { 'Authorization': `Bearer ${this.token}` } })
+                    ]);
+
+                    if (!contentRes.ok) throw new Error('Failed to load chapter content');
+
+                    const contentData = await contentRes.json();
+                    this.state.resources = await resourcesRes.json();
+
+                    const tasksData = await tasksRes.json();
+                    this.state.tasks = tasksData;
+
+                    // Populate local set of completed tasks for quick lookup
+                    this.state.completedTasks = new Set(tasksData.filter(t => t.completed).map(t => t.id));
+
+                    // Update Read Progress (just last viewed)
+                    fetch(`/chapters/${chapterId}/progress`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${this.token}` }
                     });
-                    progress = await progressRes.json();
-                } catch (e) { }
 
-                renderChapterList();
+                    this.renderContent(contentData);
 
-                // Load last viewed chapter or first
-                if (progress.last_chapter_id) {
-                    const idx = chapters.findIndex(c => c.id === progress.last_chapter_id);
-                    if (idx !== -1) {
-                        loadChapter(idx);
+                } catch (err) {
+                    console.error(err);
+                    wrapper.innerHTML = `<div style="text-align: center; color: #ff4444;">Error loading chapter.</div>`;
+                }
+            }
+
+            showCourseResources() {
+                this.state.currentChapter = null;
+                this.renderSidebar();
+                document.getElementById('sidebar').classList.remove('open');
+
+                const wrapper = document.getElementById('contentWrapper');
+                const resources = this.state.courseResources;
+
+                wrapper.innerHTML = `
+                    <div class="fade-in">
+                        <span class="lesson-category">Course Materials</span>
+                        <h1 class="lesson-title">All Resources</h1>
+                        
+                        <div class="lesson-body">
+                            <p>Here you can find all the supplemental materials, videos, and tools for this course.</p>
+                        </div>
+
+                        <div class="resources-section" style="margin-top: 20px; border: none;">
+                            ${resources.length > 0 ? resources.map(r => `
+                                <a href="${r.url}" target="_blank" class="resource-card">
+                                    <div class="resource-icon">
+                                        <i class="fas ${this.getResourceIcon(r.type)}"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600;">${r.title}</div>
+                                        <div style="font-size: 0.8rem; color: var(--reader-text-dim);">${(r.type || 'link').toUpperCase()}</div>
+                                    </div>
+                                    <i class="fas fa-external-link-alt" style="margin-left: auto; color: var(--reader-text-dim);"></i>
+                                </a>
+                            `).join('') : '<div style="padding: 20px; text-align: center; background: var(--reader-surface); border-radius: 8px;">No general resources available for this course.</div>'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderSidebar() {
+                const list = document.getElementById('chapterList');
+                list.innerHTML = this.state.chapters.map((ch, i) => {
+                    const isActive = this.state.currentChapter && this.state.currentChapter.id === ch.id;
+                    const isCompleted = this.state.completedChapters.has(ch.id);
+
+                    return `
+                        <div class="chapter-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" 
+                             onclick="reader.loadChapter(${ch.id})">
+                            <div class="chapter-status">
+                                ${isCompleted ? '<i class="fas fa-check"></i>' : (i + 1)}
+                            </div>
+                            <div class="chapter-info">
+                                <div class="chapter-title">${ch.title}</div>
+                                ${ch.category ? `<div class="chapter-meta">${ch.category}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderContent(chapterData) {
+                const wrapper = document.getElementById('contentWrapper');
+
+                // Determine Next Chapter
+                const currentIndex = this.state.chapters.findIndex(c => c.id === chapterData.id);
+                const nextChapter = this.state.chapters[currentIndex + 1];
+
+                const isChapterCompleted = this.state.completedChapters.has(chapterData.id);
+
+                wrapper.innerHTML = `
+                    <div class="fade-in">
+                        <span class="lesson-category">${chapterData.category || 'Chapter ' + (currentIndex + 1)}</span>
+                        <h1 class="lesson-title">${chapterData.title}</h1>
+                        
+                        <div class="lesson-body">
+                            ${chapterData.content_html || '<p>No content available.</p>'}
+                        </div>
+
+                        <!-- RESOURCES -->
+                        ${this.state.resources.length > 0 ? `
+                            <div class="resources-section">
+                                <div class="section-label"><i class="fas fa-paperclip"></i> Resources</div>
+                                ${this.state.resources.map(r => `
+                                    <a href="${r.url}" target="_blank" class="resource-card">
+                                        <div class="resource-icon">
+                                            <i class="fas ${this.getResourceIcon(r.type)}"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600;">${r.title}</div>
+                                            <div style="font-size: 0.8rem; color: var(--reader-text-dim);">${r.type.toUpperCase()}</div>
+                                        </div>
+                                        <i class="fas fa-external-link-alt" style="margin-left: auto; color: var(--reader-text-dim);"></i>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <!-- TASKS -->
+                        ${this.state.tasks.length > 0 ? `
+                            <div class="tasks-section">
+                                <div class="section-label"><i class="fas fa-tasks"></i> Chapter Tasks</div>
+                                <div id="taskListContainer">
+                                    ${this.renderTasksHTML()}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- COMPLETION ZONE -->
+                        <div class="completion-zone">
+                            ${isChapterCompleted ? `
+                                <div style="color: var(--reader-accent); margin-bottom: 24px; font-weight: 600;">
+                                    <i class="fas fa-check-circle"></i> Chapter Completed
+                                </div>
+                            ` : ''}
+                            
+                            <button class="btn-complete" id="completeBtn" 
+                                onclick="reader.completeChapter()" 
+                                ${isChapterCompleted ? 'disabled' : (this.state.tasks.length > 0 && this.state.completedTasks.size < this.state.tasks.length ? 'disabled' : '')}>
+                                ${isChapterCompleted ? 'Completed' : 'Mark as Complete & Continue'} 
+                                ${!isChapterCompleted ? '<i class="fas fa-arrow-right"></i>' : ''}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderTasksHTML() {
+                return this.state.tasks.map(task => {
+                    const isDone = this.state.completedTasks.has(task.id);
+                    return `
+                        <div class="task-item ${isDone ? 'completed' : ''}" onclick="reader.toggleTask(${task.id})">
+                            <div class="task-checkbox">
+                                ${isDone ? '<i class="fas fa-check" style="font-size: 12px;"></i>' : ''}
+                            </div>
+                            <div class="task-content">
+                                <div class="task-title">${task.title}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            getResourceIcon(type) {
+                switch (type) {
+                    case 'video': return 'fa-play';
+                    case 'tool': return 'fa-tools';
+                    case 'document': return 'fa-file-alt';
+                    default: return 'fa-link';
+                }
+            }
+
+            async toggleTask(taskId) {
+                // If already done, ignore (or allow toggle off? User request implied strict progression. Let's allow toggle off visually but backend usually only adds. 
+                // Wait, logic says "Chapter = completed only if All tasks done".
+                // I won't allow toggle OFF once done for simplicity unless required.
+                if (this.state.completedTasks.has(taskId)) return;
+
+                // Optimistic UI
+                this.state.completedTasks.add(taskId);
+                document.getElementById('taskListContainer').innerHTML = this.renderTasksHTML();
+                this.updateCompletionButton();
+
+                try {
+                    const res = await fetch(`/chapters/${this.state.currentChapter.id}/complete-task`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ taskId })
+                    });
+                    if (!res.ok) throw new Error('Failed');
+                } catch (err) {
+                    // Revert on error
+                    this.state.completedTasks.delete(taskId);
+                    document.getElementById('taskListContainer').innerHTML = this.renderTasksHTML();
+                    this.updateCompletionButton();
+                    alert('Failed to update task. Check connection.');
+                }
+            }
+
+            updateCompletionButton() {
+                const btn = document.getElementById('completeBtn');
+                const allDone = this.state.tasks.every(t => this.state.completedTasks.has(t.id));
+                const alreadyCompleted = this.state.completedChapters.has(this.state.currentChapter.id);
+
+                if (alreadyCompleted) {
+                    btn.disabled = true;
+                    btn.textContent = 'Completed';
+                } else if (allDone) {
+                    btn.disabled = false;
+                } else {
+                    btn.disabled = true;
+                }
+            }
+
+            async completeChapter() {
+                const btn = document.getElementById('completeBtn');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch(`/chapters/${this.state.currentChapter.id}/complete`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+
+                    const data = await res.json();
+
+                    if (data.error) {
+                        alert(data.error);
+                        this.updateCompletionButton();
                         return;
                     }
+
+                    // Success
+                    this.state.completedChapters.add(this.state.currentChapter.id);
+                    this.updateGlobalProgressUI();
+                    this.renderSidebar(); // Show checkmark in sidebar
+
+                    // Move to next chapter if exists
+                    const currentIndex = this.state.chapters.findIndex(c => c.id === this.state.currentChapter.id);
+                    if (currentIndex < this.state.chapters.length - 1) {
+                        // Small delay for visual feedback
+                        setTimeout(() => {
+                            this.loadChapter(this.state.chapters[currentIndex + 1].id);
+                        }, 500);
+                    } else {
+                        btn.innerHTML = 'Course Completed! 🎉';
+                        btn.style.background = '#10B981';
+                        btn.style.color = 'white';
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert('Error completing chapter');
+                    this.updateCompletionButton();
                 }
-                if (chapters.length > 0) {
-                    loadChapter(0);
-                }
-            } catch (err) {
-                console.error('Init error:', err);
-                document.getElementById('readingPane').innerHTML = `
-                    <div class="loading-state">
-                        <i class="fas fa-exclamation-triangle" style="color: #ff4444;"></i>
-                        <p>Failed to load course</p>
-                    </div>
-                `;
+            }
+
+            updateGlobalProgressUI() {
+                const total = this.state.chapters.length;
+                const completed = this.state.completedChapters.size;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                document.getElementById('globalProgressFill').style.width = `${pct}%`;
+                document.getElementById('globalProgressPct').textContent = `${pct}%`;
             }
         }
 
-        function renderChapterList() {
-            const list = document.getElementById('chapterList');
-
-            if (chapters.length === 0) {
-                list.innerHTML = '<div class="loading-state"><p>No chapters yet</p></div>';
-                return;
-            }
-
-            list.innerHTML = chapters.map((ch, i) => `
-                <div class="chapter-item ${i === currentChapterIndex ? 'active' : ''}" onclick="loadChapter(${i})">
-                    <div class="chapter-num">${i + 1}</div>
-                    <div class="chapter-info">
-                        <div class="chapter-name">${ch.title}</div>
-                        ${ch.category ? `<div class="chapter-category">${ch.category}</div>` : ''}
-                    </div>
-                </div>
-            `).join('');
-
-            updateProgress();
-        }
-
-        async function loadChapter(index) {
-            if (index < 0 || index >= chapters.length) return;
-
-            currentChapterIndex = index;
-            const chapter = chapters[index];
-
-            // Update sidebar
-            renderChapterList();
-            document.getElementById('chapterTitleHeader').textContent = chapter.title;
-
-            // Update nav buttons
-            document.getElementById('prevBtn').disabled = index === 0;
-            document.getElementById('nextBtn').disabled = index === chapters.length - 1;
-
-            // Show loading
-            document.getElementById('readingPane').innerHTML = `
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-            `;
-
-            // Close mobile sidebar
-            document.getElementById('sidebar').classList.remove('open');
-
-            try {
-                // Fetch chapter content
-                const res = await fetch(`/chapters/${chapter.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (!res.ok) {
-                    throw new Error('Access denied');
-                }
-
-                const data = await res.json();
-
-                // Render content
-                document.getElementById('readingPane').innerHTML = `
-                    <div class="chapter-heading">
-                        <h1>${data.title}</h1>
-                        ${data.category ? `<span class="category">${data.category}</span>` : ''}
-                    </div>
-                    <div class="chapter-content">
-                        ${data.content_html || '<p>No content available.</p>'}
-                    </div>
-                `;
-
-                // Save progress
-                fetch(`/chapters/${chapter.id}/progress`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-            } catch (err) {
-                console.error('Chapter load error:', err);
-                document.getElementById('readingPane').innerHTML = `
-                    <div class="loading-state">
-                        <i class="fas fa-lock" style="color: #ff4444;"></i>
-                        <p>Access denied. Please unlock this course first.</p>
-                        <a href="course-detail.html?id=${courseId}" style="color: var(--primary-color); margin-top: 16px;">
-                            Unlock Course
-                        </a>
-                    </div>
-                `;
-            }
-        }
-
-        function prevChapter() {
-            if (currentChapterIndex > 0) {
-                loadChapter(currentChapterIndex - 1);
-            }
-        }
-
-        function nextChapter() {
-            if (currentChapterIndex < chapters.length - 1) {
-                loadChapter(currentChapterIndex + 1);
-            }
-        }
-
-        function updateProgress() {
-            const total = chapters.length;
-            const current = currentChapterIndex + 1;
-            const percent = total > 0 ? (current / total * 100) : 0;
-
-            document.getElementById('progressFill').style.width = `${percent}%`;
-            document.getElementById('progressText').textContent = `${current} of ${total} chapters`;
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') prevChapter();
-            if (e.key === 'ArrowRight') nextChapter();
+        // Global functions for UI events
+        let reader;
+        window.addEventListener('DOMContentLoaded', () => {
+            reader = new CourseReader();
+            reader.init();
         });
 
-        init();
+        function toggleMobileSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
     </script>
 </body>
 

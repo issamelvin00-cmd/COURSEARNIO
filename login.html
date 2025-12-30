@@ -7,35 +7,18 @@
     <title>Login - Earnio</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="earnio-design-system.css">
     <style>
         :root {
-            --bg-color: #000000;
-            --surface-color: #141414;
-            --primary-color: #39FF14;
-            --primary-light: #5FFF4A;
-            --primary-dim: rgba(57, 255, 20, 0.12);
-            --text-primary: #FAFAFA;
-            --text-secondary: #A1A1AA;
-            --border-color: #27272A;
-            --accent-red: #EF4444;
-        }
-
-        [data-theme="light"] {
-            --bg-color: #F8FAFC;
-            --surface-color: #FFFFFF;
-            --primary-color: #16A34A;
-            --primary-light: #22C55E;
-            --primary-dim: rgba(22, 163, 74, 0.12);
-            --text-primary: #0F172A;
-            --text-secondary: #64748B;
-            --border-color: #E2E8F0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --bg-color: #0A0A0A;
+            --surface-color: #161616;
+            --primary-color: #CCFF00;
+            --primary-light: #9EFF00;
+            --primary-dim: rgba(204, 255, 0, 0.1);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00D9FF;
         }
 
         body {
@@ -45,7 +28,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px;
             position: relative;
             overflow-x: hidden;
         }
@@ -53,37 +36,13 @@
         body::before {
             content: '';
             position: absolute;
-            top: -200px;
+            top: -300px;
             left: 50%;
             transform: translateX(-50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--primary-dim) 0%, transparent 60%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(204, 255, 0, 0.08) 0%, rgba(0, 217, 255, 0.04) 40%, transparent 60%);
             pointer-events: none;
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            transition: all 0.3s;
-        }
-
-        .theme-toggle:hover {
-            border-color: var(--primary-color);
-            transform: scale(1.1);
         }
 
         .auth-container {
@@ -97,25 +56,26 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 14px;
             margin-bottom: 40px;
         }
 
         .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            border-radius: 14px;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary-color), #00FF88);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: #000;
+            box-shadow: 0 0 30px rgba(204, 255, 0, 0.25);
         }
 
         .logo-text {
-            font-size: 2rem;
-            font-weight: 800;
+            font-size: 2.2rem;
+            font-weight: 900;
             color: var(--text-primary);
             letter-spacing: -1px;
         }
@@ -123,20 +83,34 @@
         .auth-card {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px;
+            border-radius: 28px;
+            padding: 44px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 40px;
+            right: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            opacity: 0.4;
         }
 
         .auth-header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
         }
 
         .auth-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
+            font-size: 1.85rem;
+            font-weight: 800;
             color: var(--text-primary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
         }
 
         .auth-header p {
@@ -145,12 +119,12 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: var(--text-secondary);
             font-size: 0.9rem;
             font-weight: 500;
@@ -162,21 +136,23 @@
 
         .input-wrapper i {
             position: absolute;
-            left: 16px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
             font-size: 1rem;
+            transition: color 0.2s;
         }
 
         input {
             width: 100%;
-            padding: 16px 16px 16px 48px;
-            border-radius: 14px;
+            padding: 18px 18px 18px 52px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
-            background: var(--bg-color);
+            background: rgba(255, 255, 255, 0.03);
             color: var(--text-primary);
             font-size: 1rem;
+            font-family: inherit;
             outline: none;
             transition: all 0.25s ease;
         }
@@ -184,42 +160,46 @@
         input:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px var(--primary-dim);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        input:focus+i,
+        .input-wrapper:focus-within i {
+            color: var(--primary-color);
         }
 
         input::placeholder {
-            color: var(--text-secondary);
+            color: #6B7280;
         }
 
         .btn-primary {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
             background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             border: none;
-            border-radius: 14px;
+            border-radius: 16px;
             color: #000;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 8px;
+            margin-top: 12px;
+            box-shadow: 0 4px 20px rgba(204, 255, 0, 0.2);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(57, 255, 20, 0.3);
-        }
-
-        [data-theme="light"] .btn-primary:hover {
-            box-shadow: 0 10px 30px rgba(22, 163, 74, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(204, 255, 0, 0.35);
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .auth-footer {
             text-align: center;
-            margin-top: 28px;
+            margin-top: 32px;
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
@@ -228,10 +208,11 @@
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 600;
+            transition: opacity 0.2s;
         }
 
         .auth-footer a:hover {
-            text-decoration: underline;
+            opacity: 0.8;
         }
 
         .back-link {
@@ -241,48 +222,52 @@
             color: var(--text-secondary);
             text-decoration: none;
             font-size: 0.9rem;
-            margin-bottom: 24px;
-            transition: color 0.2s;
+            margin-bottom: 28px;
+            transition: all 0.2s;
         }
 
         .back-link:hover {
             color: var(--primary-color);
+            transform: translateX(-4px);
         }
 
         @media (max-width: 480px) {
             body {
-                padding: 15px;
+                padding: 16px;
                 align-items: flex-start;
                 padding-top: 60px;
             }
 
             .auth-card {
-                padding: 30px 20px;
+                padding: 32px 24px;
+                border-radius: 24px;
             }
 
             .logo {
-                margin-bottom: 30px;
+                margin-bottom: 32px;
             }
 
             .logo-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+                border-radius: 14px;
             }
 
             .logo-text {
-                font-size: 1.6rem;
+                font-size: 1.8rem;
             }
 
             .auth-header h1 {
                 font-size: 1.5rem;
             }
 
-            .theme-toggle {
-                top: 15px;
-                right: 15px;
-                width: 40px;
-                height: 40px;
+            input {
+                padding: 16px 16px 16px 48px;
+            }
+
+            .btn-primary {
+                padding: 16px;
             }
         }
     </style>

@@ -8,827 +8,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* ====== LUXURY DARK THEME ====== */
-        :root {
-            --bg-color: #000000;
-            --surface-color: #0a0a0a;
-            --card-bg: #0d0d0d;
-            --border-color: rgba(255, 255, 255, 0.06);
-            --neon: #00FF66;
-            --neon-dim: rgba(0, 255, 102, 0.08);
-            --neon-glow: rgba(0, 255, 102, 0.15);
-            --text-primary: #FAFAFA;
-            --text-secondary: #6B6B6B;
-            --text-muted: #3D3D3D;
-            --sidebar-width: 280px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background: var(--bg-color);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            line-height: 1.6;
-        }
-
-        /* ====== SIDEBAR ====== */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--surface-color);
-            border-right: 1px solid var(--border-color);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            padding: 32px 24px;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 48px;
-        }
-
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--neon), #00CC52);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 20px var(--neon-glow);
-        }
-
-        .brand-icon i {
-            font-size: 1rem;
-            color: #000;
-        }
-
-        .brand-text {
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-links {
-            list-style: none;
-            flex: 1;
-        }
-
-        .nav-item {
-            margin-bottom: 8px;
-        }
-
-        .nav-item a {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 18px;
-            border-radius: 14px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item a:hover {
-            color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .nav-item a.active {
-            color: var(--neon);
-            background: var(--neon-dim);
-        }
-
-        .nav-item a i {
-            width: 20px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .nav-divider {
-            height: 1px;
-            background: var(--border-color);
-            margin: 24px 0;
-        }
-
-        .user-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 0;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .user-avatar {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--neon-dim), var(--neon-glow));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--neon);
-        }
-
-        .user-info {
-            flex: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .user-status {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .logout-btn {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 80, 80, 0.1);
-            color: #FF5050;
-        }
-
-        /* ====== MAIN CONTENT ====== */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 48px 56px;
-            min-height: 100vh;
-        }
-
-        /* ====== HEADER ====== */
-        .header {
-            margin-bottom: 48px;
-        }
-
-        .greeting {
-            font-size: 0.9rem;
-            font-weight: 300;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-
-        .page-title {
-            font-size: 2.2rem;
-            font-weight: 700;
-            letter-spacing: -1px;
-        }
-
-        /* ====== BALANCE CARD - LUXURY ====== */
-        .balance-card {
-            background: var(--card-bg);
-            border-radius: 28px;
-            padding: 40px 44px;
-            margin-bottom: 48px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            box-shadow:
-                0 4px 24px rgba(0, 0, 0, 0.4),
-                0 1px 3px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.02);
-        }
-
-        /* Thin neon line on top */
-        .balance-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 40px;
-            right: 40px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--neon), transparent);
-            opacity: 0.4;
-        }
-
-        .balance-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
-            font-weight: 400;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 12px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--neon);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--neon-glow);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.5;
-                transform: scale(1.15);
-            }
-        }
-
-        .balance-amount {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            margin-bottom: 32px;
-        }
-
-        .currency {
-            font-size: 1.4rem;
-            font-weight: 300;
-            color: var(--text-secondary);
-        }
-
-        .amount {
-            font-size: 4rem;
-            font-weight: 700;
-            letter-spacing: -3px;
-            background: linear-gradient(180deg, var(--text-primary) 0%, rgba(250, 250, 250, 0.7) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        .balance-actions {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .btn-outline {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: transparent;
-            border: 1px solid var(--neon);
-            border-radius: 50px;
-            color: var(--neon);
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .btn-outline:hover {
-            background: var(--neon-dim);
-            box-shadow: 0 0 20px var(--neon-glow);
-            transform: translateY(-2px);
-        }
-
-        .btn-outline i {
-            font-size: 0.85rem;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: var(--neon-dim);
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--neon);
-        }
-
-        /* ====== PREMIUM COURSES CARD ====== */
-        .section-label {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-        }
-
-        .courses-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 28px 32px;
-            margin-bottom: 48px;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
-            text-decoration: none;
-            display: block;
-        }
-
-        .courses-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 32px;
-            right: 32px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--neon), transparent);
-            opacity: 0.25;
-        }
-
-        .courses-card:hover {
-            border-color: rgba(0, 255, 102, 0.2);
-            transform: translateY(-4px);
-            box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                0 0 40px var(--neon-glow);
-        }
-
-        .courses-inner {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .courses-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--neon), #00CC52);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 24px var(--neon-glow);
-        }
-
-        .courses-icon i {
-            font-size: 1.5rem;
-            color: #000;
-        }
-
-        .courses-text {
-            flex: 1;
-        }
-
-        .courses-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .courses-subtitle {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .courses-arrow {
-            width: 40px;
-            height: 40px;
-            background: var(--neon-dim);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--neon);
-            transition: all 0.3s ease;
-        }
-
-        .courses-card:hover .courses-arrow {
-            background: var(--neon);
-            color: #000;
-            transform: translateX(4px);
-        }
-
-        /* ====== QUICK ACTIONS ====== */
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 48px;
-        }
-
-        .action-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 28px 20px;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.25s ease;
-            cursor: pointer;
-        }
-
-        .action-card:hover {
-            border-color: rgba(0, 255, 102, 0.15);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        .action-icon {
-            width: 52px;
-            height: 52px;
-            margin: 0 auto 16px;
-            background: var(--neon-dim);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--neon);
-            font-size: 1.2rem;
-            transition: all 0.25s ease;
-        }
-
-        .action-card:hover .action-icon {
-            background: var(--neon);
-            color: #000;
-            box-shadow: 0 4px 20px var(--neon-glow);
-        }
-
-        .action-label {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .action-caption {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        /* ====== REFERRAL CARD ====== */
-        .referral-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 32px;
-            position: relative;
-        }
-
-        .referral-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 32px;
-            right: 32px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--neon), transparent);
-            opacity: 0.2;
-        }
-
-        .referral-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .referral-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .referral-reward {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            background: var(--neon-dim);
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--neon);
-        }
-
-        .referral-desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .referral-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 14px 18px;
-        }
-
-        .referral-link {
-            flex: 1;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .copy-btn {
-            width: 44px;
-            height: 44px;
-            background: var(--neon-dim);
-            border: 1px solid var(--neon);
-            border-radius: 12px;
-            color: var(--neon);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .copy-btn:hover {
-            background: var(--neon);
-            color: #000;
-        }
-
-        /* ====== ADMIN NAV ====== */
-        .admin-nav {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .admin-nav a {
-            color: var(--neon) !important;
-        }
-
-        /* ====== MOBILE TOGGLE ====== */
-        .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 1100;
-            width: 44px;
-            height: 44px;
-            background: var(--card-bg);
-            border: 1px solid var(--neon);
-            border-radius: 12px;
-            color: var(--neon);
-            font-size: 1.1rem;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 12px var(--neon-glow);
-        }
-
-        /* ====== RESPONSIVE ====== */
-        @media (max-width: 1024px) {
-            .main-content {
-                padding: 40px 32px;
-            }
-
-            .actions-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 85%;
-                max-width: 300px;
-                transform: translateX(-100%);
-                padding: 24px 20px;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-                box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
-            }
-
-            .mobile-toggle {
-                display: flex;
-                top: 12px;
-                right: 12px;
-                width: 40px;
-                height: 40px;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 72px 16px 32px;
-            }
-
-            .header {
-                margin-bottom: 24px;
-            }
-
-            .greeting {
-                font-size: 0.8rem;
-            }
-
-            .page-title {
-                font-size: 1.5rem;
-            }
-
-            .brand {
-                margin-bottom: 32px;
-            }
-
-            .brand-icon {
-                width: 36px;
-                height: 36px;
-            }
-
-            .brand-text {
-                font-size: 1.2rem;
-            }
-
-            .balance-card {
-                padding: 24px 20px;
-                border-radius: 20px;
-            }
-
-            .amount {
-                font-size: 2.5rem;
-                letter-spacing: -2px;
-            }
-
-            .currency {
-                font-size: 1rem;
-            }
-
-            .balance-actions {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            .status-badge {
-                font-size: 0.75rem;
-                padding: 6px 12px;
-            }
-
-            .btn-outline {
-                padding: 10px 20px;
-                font-size: 0.85rem;
-            }
-
-            .section-label {
-                font-size: 0.7rem;
-                margin-bottom: 14px;
-            }
-
-            .courses-card {
-                padding: 20px 16px;
-                border-radius: 18px;
-            }
-
-            .courses-link {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            .courses-text h3 {
-                font-size: 1rem;
-            }
-
-            .courses-text p {
-                font-size: 0.85rem;
-            }
-
-            .actions-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-
-            .action-card {
-                padding: 16px 12px;
-                border-radius: 16px;
-            }
-
-            .action-icon {
-                width: 40px;
-                height: 40px;
-                margin-bottom: 10px;
-            }
-
-            .action-icon i {
-                font-size: 1rem;
-            }
-
-            .action-label {
-                font-size: 0.8rem;
-            }
-
-            .action-caption {
-                font-size: 0.7rem;
-            }
-
-            .referral-card {
-                padding: 20px 16px;
-                border-radius: 18px;
-            }
-
-            .referral-header span {
-                font-size: 0.75rem;
-            }
-
-            .ref-input-wrapper input {
-                font-size: 0.8rem;
-                padding: 12px 14px;
-            }
-
-            .user-section {
-                padding: 14px 0;
-            }
-
-            .user-avatar {
-                width: 38px;
-                height: 38px;
-            }
-
-            .user-name {
-                font-size: 0.85rem;
-            }
-
-            .nav-item a {
-                padding: 12px 14px;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .main-content {
-                padding: 68px 12px 24px;
-            }
-
-            .page-title {
-                font-size: 1.3rem;
-            }
-
-            .amount {
-                font-size: 2.2rem;
-            }
-
-            .actions-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-
-            .action-card {
-                padding: 14px 10px;
-            }
-
-            .action-icon {
-                width: 36px;
-                height: 36px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="luxury-theme.css">
     <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
+    <!-- Background Cubes -->
+    <!-- Background Cubes (Controlled via CSS) -->
+    <div class="background-cubes">
+        <div class="cube-fragment cube-1"></div>
+        <div class="cube-fragment cube-2"></div>
+        <div class="cube-fragment cube-3"></div>
+        <div class="cube-fragment cube-4"></div>
+        <div class="cube-fragment cube-5"></div>
+    </div>
 
-    <!-- MOBILE TOGGLE -->
-    <div class="mobile-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
+
+    <!-- MOBILE TOP BAR (New Modern Header) -->
+    <div class="mobile-top-bar">
+        <div class="mobile-brand">
+            <i class="fas fa-coins"></i>
+            <span>Earnio</span>
+        </div>
+        <a href="profile.html" class="mobile-profile-btn" id="mobileProfileBtn">
+            <i class="fas fa-user-circle"></i>
+        </a>
     </div>
 
     <!-- SIDEBAR -->
@@ -859,6 +63,11 @@
             <li class="nav-item">
                 <a href="courses.html">
                     <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="resources.html">
+                    <i class="fas fa-box-open"></i> Resources
                 </a>
             </li>
             <li class="nav-item">
@@ -893,30 +102,103 @@
             <div class="page-title">Dashboard</div>
         </div>
 
+        <!-- REFERRAL PROMPT BANNER (shown when user has balance) -->
+        <div class="referral-prompt" id="referralPrompt"
+            style="display: none; background: linear-gradient(135deg, rgba(204, 255, 0, 0.15), rgba(204, 255, 0, 0.05)); border: 1px solid rgba(204, 255, 0, 0.3); border-radius: 16px; padding: 16px 20px; margin-bottom: 24px; display: none;">
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">
+                        <i class="fas fa-gift" style="color: var(--neon); margin-right: 8px;"></i>
+                        You're earning! Invite more friends
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                        Earn <strong style="color: var(--neon);">30%</strong> on every course they buy
+                    </div>
+                </div>
+                <button onclick="scrollToReferral()"
+                    style="padding: 12px 24px; background: var(--neon); border: none; border-radius: 50px; color: #000; font-weight: 700; cursor: pointer; white-space: nowrap;">
+                    <i class="fas fa-share"></i> Share Now
+                </button>
+            </div>
+        </div>
+
         <!-- BALANCE CARD -->
         <div class="balance-card">
-            <div class="balance-label">
-                <span class="status-dot"></span>
-                Available Balance
-            </div>
-            <div class="balance-amount">
-                <span class="currency">KES</span>
-                <span class="amount" id="balanceDisplay">0.00</span>
+            <!-- 3D Cube SVG Decorations -->
+            <div class="cube-decorations">
+                <!-- Cube Fragment 1 - Large -->
+                <svg class="cube-fragment" width="80" height="92" viewBox="0 0 80 92" fill="none">
+                    <path d="M40 0L80 23V69L40 92L0 69V23L40 0Z" fill="url(#cubeGrad1)" fill-opacity="0.6" />
+                    <path d="M40 46L80 23V69L40 92V46Z" fill="#CCFF00" fill-opacity="0.3" />
+                    <path d="M40 46L0 23V69L40 92V46Z" fill="#CCFF00" fill-opacity="0.15" />
+                    <path d="M40 0L80 23L40 46L0 23L40 0Z" fill="#CCFF00" fill-opacity="0.5" />
+                    <defs>
+                        <linearGradient id="cubeGrad1" x1="0" y1="0" x2="80" y2="92">
+                            <stop stop-color="#CCFF00" stop-opacity="0.4" />
+                            <stop offset="1" stop-color="#CCFF00" stop-opacity="0.1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+
+                <!-- Cube Fragment 2 - Medium -->
+                <svg class="cube-fragment" width="50" height="58" viewBox="0 0 50 58" fill="none">
+                    <path d="M25 0L50 14.5V43.5L25 58L0 43.5V14.5L25 0Z" fill="#CCFF00" fill-opacity="0.2" />
+                    <path d="M25 29L50 14.5V43.5L25 58V29Z" fill="#CCFF00" fill-opacity="0.25" />
+                    <path d="M25 29L0 14.5V43.5L25 58V29Z" fill="#CCFF00" fill-opacity="0.1" />
+                    <path d="M25 0L50 14.5L25 29L0 14.5L25 0Z" fill="#CCFF00" fill-opacity="0.35" />
+                </svg>
+
+                <!-- Cube Fragment 3 - Small -->
+                <svg class="cube-fragment" width="35" height="40" viewBox="0 0 35 40" fill="none">
+                    <path d="M17.5 0L35 10V30L17.5 40L0 30V10L17.5 0Z" fill="#CCFF00" fill-opacity="0.15" />
+                    <path d="M17.5 20L35 10V30L17.5 40V20Z" fill="#CCFF00" fill-opacity="0.2" />
+                    <path d="M17.5 20L0 10V30L17.5 40V20Z" fill="#CCFF00" fill-opacity="0.08" />
+                    <path d="M17.5 0L35 10L17.5 20L0 10L17.5 0Z" fill="#CCFF00" fill-opacity="0.3" />
+                </svg>
+
+                <!-- Cube Fragment 4 - Tiny -->
+                <svg class="cube-fragment" width="24" height="28" viewBox="0 0 24 28" fill="none">
+                    <path d="M12 0L24 7V21L12 28L0 21V7L12 0Z" fill="#CCFF00" fill-opacity="0.2" />
+                    <path d="M12 14L24 7V21L12 28V14Z" fill="#CCFF00" fill-opacity="0.15" />
+                    <path d="M12 0L24 7L12 14L0 7L12 0Z" fill="#CCFF00" fill-opacity="0.25" />
+                </svg>
+
+                <!-- Cube Fragment 5 - Extra Small -->
+                <svg class="cube-fragment" width="18" height="21" viewBox="0 0 18 21" fill="none">
+                    <path d="M9 0L18 5.25V15.75L9 21L0 15.75V5.25L9 0Z" fill="#CCFF00" fill-opacity="0.25" />
+                    <path d="M9 10.5L18 5.25V15.75L9 21V10.5Z" fill="#CCFF00" fill-opacity="0.18" />
+                    <path d="M9 0L18 5.25L9 10.5L0 5.25L9 0Z" fill="#CCFF00" fill-opacity="0.3" />
+                </svg>
             </div>
 
-            <div id="pendingContainer"
-                style="margin-bottom: 24px; display: none; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.9rem;">
-                <i class="fas fa-clock" style="color: #FFB020;"></i>
-                <span>Pending: KES <span id="pendingDisplay" style="color: #fff; font-weight: 600;">0.00</span></span>
-            </div>
+            <!-- Balance Content -->
+            <div class="balance-content">
+                <div class="balance-label">
+                    <span class="status-dot"></span>
+                    <i class="fas fa-wallet"></i>
+                    Available Balance
+                </div>
+                <div class="balance-amount">
+                    <span class="currency">KES</span>
+                    <span class="amount" id="balanceDisplay">0.00</span>
+                </div>
 
-            <div class="balance-actions">
-                <span class="status-badge" id="accountBadge">
-                    <i class="fas fa-check-circle"></i> Active Account
-                </span>
-                <a href="withdraw.html" class="btn-outline">
-                    <i class="fas fa-arrow-up"></i> Withdraw
-                </a>
+                <div id="pendingContainer"
+                    style="margin-bottom: 24px; display: none; align-items: center; gap: 8px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">
+                    <i class="fas fa-clock" style="color: #CCFF00;"></i>
+                    <span>Pending: KES <span id="pendingDisplay"
+                            style="color: #fff; font-weight: 600;">0.00</span></span>
+                </div>
+
+                <div class="balance-actions">
+                    <span class="status-badge" id="accountBadge">
+                        <i class="fas fa-check-circle"></i> Active Account
+                    </span>
+                    <a href="withdraw.html" class="btn-outline">
+                        <i class="fas fa-arrow-up"></i> Withdraw
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -948,7 +230,7 @@
             <a href="team.html" class="action-card">
                 <div class="action-icon"><i class="fas fa-user-plus"></i></div>
                 <div class="action-label">Invite</div>
-                <div class="action-caption">Earn KES 50</div>
+                <div class="action-caption">Earn 30%</div>
             </a>
             <a href="tasks.html" class="action-card">
                 <div class="action-icon"><i class="fas fa-tasks"></i></div>
@@ -957,20 +239,190 @@
             </a>
         </div>
 
-        <!-- REFERRAL SECTION -->
-        <div class="referral-card">
+        <!-- REFERRAL EARNINGS CARD -->
+        <div class="referral-card" id="referralEarningsCard">
             <div class="referral-header">
-                <div class="referral-title">Your Referral Link</div>
-                <span class="referral-reward"><i class="fas fa-gift"></i> KES 50 per invite</span>
+                <div class="referral-title">
+                    <i class="fas fa-coins" style="color: var(--neon);"></i>
+                    Referral Earnings
+                </div>
+                <span class="referral-reward"><i class="fas fa-percentage"></i> 30% per course</span>
             </div>
-            <p class="referral-desc">Share your unique link and earn for every friend who joins Earnio.</p>
+
+            <!-- Stats Grid -->
+            <div class="earnings-stats"
+                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0;">
+                <div class="stat-item"
+                    style="text-align: center; padding: 16px 8px; background: rgba(255,255,255,0.03); border-radius: 14px;">
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--neon);" id="totalEarnedStat">0.00
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Total Earned</div>
+                </div>
+                <div class="stat-item"
+                    style="text-align: center; padding: 16px 8px; background: rgba(255,255,255,0.03); border-radius: 14px;">
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #fff;" id="referralCountStat">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Referrals</div>
+                </div>
+                <div class="stat-item"
+                    style="text-align: center; padding: 16px 8px; background: rgba(255,255,255,0.03); border-radius: 14px;">
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #fff;" id="withdrawableStat">0.00</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Available</div>
+                </div>
+            </div>
+
+            <p class="referral-desc" style="font-size: 0.9rem; line-height: 1.5;">
+                <strong style="color: var(--neon);">Earn KES 50</strong> per signup + <strong
+                    style="color: var(--neon);">30% commission</strong> on every course they buy!
+            </p>
+
             <div class="referral-box">
                 <span class="referral-link" id="referralLink">Loading...</span>
-                <button class="copy-btn" onclick="copyReferral()"><i class="fas fa-copy"></i></button>
+                <button class="copy-btn" onclick="copyReferral()" title="Copy referral link">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+
+            <!-- Share Buttons -->
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <button onclick="shareReferral('whatsapp')"
+                    style="flex: 1; padding: 12px; background: #25D366; border: none; border-radius: 12px; color: #fff; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fab fa-whatsapp"></i> Share
+                </button>
+                <button onclick="shareReferral('twitter')"
+                    style="flex: 1; padding: 12px; background: #1DA1F2; border: none; border-radius: 12px; color: #fff; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fab fa-twitter"></i> Tweet
+                </button>
+                <button onclick="shareReferral('copy')"
+                    style="flex: 1; padding: 12px; background: var(--neon); border: none; border-radius: 12px; color: #000; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-link"></i> Copy
+                </button>
+            </div>
+        </div>
+
+        <!-- TIER STATUS CARD -->
+        <div class="section-label" style="margin-top: 32px;">Your Referral Tier</div>
+        <div class="referral-card" id="tierStatusCard">
+            <div class="referral-header">
+                <div class="referral-title">
+                    <i class="fas fa-trophy" style="color: var(--neon);"></i>
+                    <span id="tierName">Bronze</span> Tier
+                </div>
+                <span class="referral-reward" id="tierBadge"><i class="fas fa-percentage"></i> <span
+                        id="tierPercent">20</span>% Commission</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin: 20px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem;">
+                    <span style="color: var(--text-secondary);">Progress to next tier</span>
+                    <span id="tierProgress" style="color: var(--neon);">0 / 10 referrals</span>
+                </div>
+                <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+                    <div id="tierProgressBar"
+                        style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon), #00CC52); border-radius: 10px; transition: width 0.5s ease;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier Legend -->
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <div
+                    style="padding: 10px 16px; background: rgba(205, 127, 50, 0.15); border-radius: 10px; border: 1px solid rgba(205, 127, 50, 0.3);">
+                    <div style="font-size: 0.75rem; color: #CD7F32;">Bronze</div>
+                    <div style="font-weight: 700; color: #CD7F32;">20%</div>
+                </div>
+                <div
+                    style="padding: 10px 16px; background: rgba(192, 192, 192, 0.15); border-radius: 10px; border: 1px solid rgba(192, 192, 192, 0.3);">
+                    <div style="font-size: 0.75rem; color: #C0C0C0;">Silver (10+)</div>
+                    <div style="font-weight: 700; color: #C0C0C0;">30%</div>
+                </div>
+                <div
+                    style="padding: 10px 16px; background: rgba(255, 215, 0, 0.15); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <div style="font-size: 0.75rem; color: #FFD700;">Gold (50+)</div>
+                    <div style="font-weight: 700; color: #FFD700;">40%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROMO TOOLS SECTION -->
+        <div class="section-label" style="margin-top: 32px;">Affiliate Promo Tools</div>
+        <div class="referral-card" id="promoToolsCard">
+            <div class="referral-header">
+                <div class="referral-title">
+                    <i class="fas fa-bullhorn" style="color: var(--neon);"></i>
+                    Share & Earn More
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0;">
+                <div style="flex: 1; min-width: 140px; text-align: center;">
+                    <div id="qrCodeContainer"
+                        style="background: #fff; padding: 10px; border-radius: 12px; width: fit-content; margin: 0 auto;">
+                        <img id="qrCodeImg" src="" alt="QR Code" style="width: 120px; height: 120px; display: none;">
+                        <div id="qrLoading"
+                            style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; color: #000;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-secondary);">Scan to join</div>
+                </div>
+                <div style="flex: 2; min-width: 200px;">
+                    <h4 style="margin-bottom: 12px; font-size: 0.95rem;">Pre-written Captions</h4>
+                    <div id="promoCaption"
+                        style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 14px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; max-height: 120px; overflow-y: auto;">
+                        Loading captions...
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <button onclick="copyPromoCaption()"
+                            style="flex: 1; padding: 10px; background: var(--neon); color: #000; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button onclick="nextCaption()"
+                            style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); color: #fff; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div style="background: rgba(204, 255, 0, 0.08); border-radius: 12px; padding: 14px; margin-top: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <i class="fas fa-lightbulb" style="color: var(--neon);"></i>
+                    <span style="font-weight: 600; font-size: 0.9rem;">Pro Tip</span>
+                </div>
+                <div id="promoTip" style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Share your referral link in your WhatsApp status daily for maximum visibility!
+                </div>
             </div>
         </div>
 
     </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="mobile-bottom-nav">
+        <a href="dashboard.html" class="nav-tab active">
+            <i class="fas fa-th-large"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-tab">
+            <i class="fas fa-bolt"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="courses.html" class="nav-tab">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Learn</span>
+        </a>
+        <a href="team.html" class="nav-tab">
+            <i class="fas fa-users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-tab">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
 
     <script>
         const token = localStorage.getItem('token');
@@ -1020,17 +472,26 @@
                 // Header Info
                 const greeting = document.getElementById('userGreeting');
 
-                // Update balance
+                // Update balance - always show 2 decimal places
                 const balanceEl = document.getElementById('balanceDisplay') || document.getElementById('balance');
-                if (balanceEl) balanceEl.textContent = data.wallet.balanceKES.toLocaleString();
+                if (balanceEl) {
+                    const balance = parseFloat(data.wallet.balanceKES) || 0;
+                    balanceEl.textContent = balance.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
 
-                // Update pending balance
-                const pending = data.wallet.pendingCombined || 0;
+                // Update pending balance - always show 2 decimal places
+                const pending = parseFloat(data.wallet.pendingCombined) || 0;
                 const pendingContainer = document.getElementById('pendingContainer');
                 if (pendingContainer) {
                     if (pending > 0) {
                         pendingContainer.style.display = 'flex';
-                        document.getElementById('pendingDisplay').textContent = pending.toLocaleString();
+                        document.getElementById('pendingDisplay').textContent = pending.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
                     } else {
                         pendingContainer.style.display = 'none';
                     }
@@ -1039,7 +500,35 @@
                 // Update user info
                 document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
                 document.getElementById('sidebarStatus').textContent = data.user.isPaid ? 'Premium' : 'Active';
-                document.getElementById('userAvatar').textContent = data.user.email.charAt(0).toUpperCase();
+
+                // Avatar Logic
+                const sidebarAv = document.getElementById('userAvatar');
+                const mobileBtn = document.getElementById('mobileProfileBtn');
+
+                if (data.user.avatar_url) {
+                    const imgTag = `<img src="assets/avatars/${data.user.avatar_url}.png" style="width:100%; height:100%; border-radius:inherit; object-fit:cover;">`;
+
+                    // Sidebar
+                    sidebarAv.innerHTML = imgTag;
+                    sidebarAv.style.background = 'transparent';
+
+                    // Mobile Header Button
+                    if (mobileBtn) {
+                        mobileBtn.innerHTML = imgTag;
+                        // Adjust styling to fit image perfectly
+                        mobileBtn.style.padding = '0';
+                        mobileBtn.style.width = '40px';
+                        mobileBtn.style.height = '40px';
+                        mobileBtn.style.borderRadius = '50%';
+                        mobileBtn.style.overflow = 'hidden';
+                        mobileBtn.style.border = '2px solid var(--neon)';
+                        mobileBtn.style.display = 'flex'; // Ensure centering
+                        mobileBtn.style.alignItems = 'center';
+                        mobileBtn.style.justifyContent = 'center';
+                    }
+                } else {
+                    sidebarAv.textContent = data.user.email.charAt(0).toUpperCase();
+                }
 
                 // Referral link
                 const refCode = data.user.referralCode || 'unknown';
@@ -1048,6 +537,15 @@
                 // Admin nav
                 if (data.user.isAdmin) {
                     document.getElementById('adminNavItem').style.display = 'block';
+                }
+
+                // Show referral prompt if user has earned money
+                const balance = parseFloat(data.wallet.balanceKES) || 0;
+                if (balance > 0) {
+                    const prompt = document.getElementById('referralPrompt');
+                    if (prompt && !localStorage.getItem('referralPromptDismissed')) {
+                        prompt.style.display = 'block';
+                    }
                 }
 
             } catch (err) {
@@ -1068,12 +566,190 @@
             });
         }
 
+        // Share referral link via different platforms
+        function shareReferral(platform) {
+            const link = document.getElementById('referralLink').textContent;
+            const text = 'Join Earnio and start earning! Use my referral link:';
+
+            switch (platform) {
+                case 'whatsapp':
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + link)}`, '_blank');
+                    break;
+                case 'twitter':
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`, '_blank');
+                    break;
+                case 'copy':
+                    copyReferral();
+                    break;
+            }
+        }
+
+        // Scroll to referral earnings card
+        function scrollToReferral() {
+            const card = document.getElementById('referralEarningsCard');
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Highlight briefly
+                card.style.boxShadow = '0 0 30px rgba(204, 255, 0, 0.4)';
+                setTimeout(() => {
+                    card.style.boxShadow = '';
+                }, 2000);
+            }
+        }
+
+        // Load referral earnings stats
+        async function loadReferralEarnings() {
+            try {
+                const res = await fetch('/referrals/earnings', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) return;
+
+                const data = await res.json();
+
+                // Update stats
+                document.getElementById('totalEarnedStat').textContent = data.stats.totalEarned.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                document.getElementById('referralCountStat').textContent = data.stats.referralCount;
+                document.getElementById('withdrawableStat').textContent = data.stats.withdrawable.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+            } catch (err) {
+                console.error('Referral earnings load error:', err);
+            }
+        }
+
         function logout() {
             localStorage.removeItem('token');
             window.location.href = 'login.html';
         }
 
+        // Load tier status data
+        async function loadTierStatus() {
+            try {
+                const res = await fetch('/referrals/tier-status', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+
+                const data = await res.json();
+
+                // Update tier name and badge
+                document.getElementById('tierName').textContent = data.currentTier.name;
+                document.getElementById('tierPercent').textContent = data.currentTier.percent;
+
+                // Update badge color based on tier
+                const tierBadge = document.getElementById('tierBadge');
+                const tierColors = {
+                    'Bronze': '#CD7F32',
+                    'Silver': '#C0C0C0',
+                    'Gold': '#FFD700'
+                };
+                tierBadge.style.background = `rgba(${data.currentTier.name === 'Gold' ? '255,215,0' : data.currentTier.name === 'Silver' ? '192,192,192' : '205,127,50'}, 0.15)`;
+                tierBadge.style.color = tierColors[data.currentTier.name] || 'var(--neon)';
+                tierBadge.style.borderColor = tierColors[data.currentTier.name] || 'var(--neon)';
+
+                // Update progress text
+                if (data.nextTier) {
+                    document.getElementById('tierProgress').textContent = `${data.currentReferrals} / ${data.nextTier.minReferrals} referrals`;
+
+                    // Calculate progress percentage
+                    const prevMin = data.currentTier.minReferrals;
+                    const nextMin = data.nextTier.minReferrals;
+                    const progress = ((data.currentReferrals - prevMin) / (nextMin - prevMin)) * 100;
+                    document.getElementById('tierProgressBar').style.width = `${Math.min(progress, 100)}%`;
+                } else {
+                    document.getElementById('tierProgress').textContent = `${data.currentReferrals} referrals (MAX tier!)`;
+                    document.getElementById('tierProgressBar').style.width = '100%';
+                }
+
+            } catch (err) {
+                console.error('Tier status load error:', err);
+            }
+        }
+
+        // Promo materials data
+        let promoCaptions = [];
+        let promoTips = [];
+        let currentCaptionIndex = 0;
+        let currentTipIndex = 0;
+
+        // Load promo tools data
+        async function loadPromoTools() {
+            try {
+                // Load QR code
+                const qrRes = await fetch('/referrals/qr-code', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (qrRes.ok) {
+                    const qrData = await qrRes.json();
+                    const qrImg = document.getElementById('qrCodeImg');
+                    qrImg.src = qrData.qrCodeUrl;
+                    qrImg.style.display = 'block';
+                    document.getElementById('qrLoading').style.display = 'none';
+                }
+
+                // Load captions
+                const promoRes = await fetch('/referrals/promo-materials', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (promoRes.ok) {
+                    const promoData = await promoRes.json();
+                    promoCaptions = promoData.captions || [];
+                    promoTips = promoData.tips || [];
+
+                    if (promoCaptions.length > 0) {
+                        updateCaption();
+                    }
+                    if (promoTips.length > 0) {
+                        updateTip();
+                    }
+                }
+
+            } catch (err) {
+                console.error('Promo tools load error:', err);
+            }
+        }
+
+        function updateCaption() {
+            if (promoCaptions.length === 0) return;
+            const caption = promoCaptions[currentCaptionIndex];
+            document.getElementById('promoCaption').innerHTML = `
+                <div style="margin-bottom: 6px; font-size: 0.75rem; color: var(--neon);">${caption.platform}</div>
+                ${caption.text.replace(/\n/g, '<br>')}
+            `;
+        }
+
+        function updateTip() {
+            if (promoTips.length === 0) return;
+            document.getElementById('promoTip').textContent = promoTips[currentTipIndex];
+        }
+
+        function nextCaption() {
+            currentCaptionIndex = (currentCaptionIndex + 1) % promoCaptions.length;
+            updateCaption();
+            // Also cycle tip
+            currentTipIndex = (currentTipIndex + 1) % promoTips.length;
+            updateTip();
+        }
+
+        function copyPromoCaption() {
+            if (promoCaptions.length === 0) return;
+            const caption = promoCaptions[currentCaptionIndex];
+            navigator.clipboard.writeText(caption.text);
+            alert('Caption copied!');
+        }
+
+        // Load all dashboard data
         loadDashboard();
+        loadReferralEarnings();
+        loadTierStatus();
+        loadPromoTools();
     </script>
 </body>
 

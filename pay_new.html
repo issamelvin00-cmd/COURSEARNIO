@@ -8,41 +8,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="earnio-design-system.css">
     <style>
         :root {
             /* Dark Theme (Default) */
-            --bg-color: #000000;
-            --surface-color: #141414;
-            --primary-color: #39FF14;
-            --text-primary: #FAFAFA;
-            --text-secondary: #A1A1AA;
-            --border-color: #27272A;
-        }
-
-        /* Light Theme */
-        [data-theme="light"] {
-            --bg-color: #F8FAFC;
-            --surface-color: #FFFFFF;
-            --primary-color: #16A34A;
-            --text-primary: #0F172A;
-            --text-secondary: #64748B;
-            --border-color: #E2E8F0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            height: 100%;
-            width: 100%;
+            --bg-color: #0A0A0A;
+            --surface-color: #161616;
+            --primary-color: #CCFF00;
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --border-color: rgba(255, 255, 255, 0.08);
         }
 
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-color);
             color: var(--text-primary);
             min-height: 100vh;
@@ -55,58 +33,41 @@
             overflow-x: hidden;
         }
 
-        /* Theme Toggle */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            z-index: 100;
-        }
-
-        .theme-toggle:hover {
-            border-color: var(--primary-color);
-            transform: scale(1.1);
-        }
-
         /* Main Card */
         .payment-card {
             width: 100%;
             max-width: 420px;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px 30px;
+            border-radius: 28px;
+            padding: 44px 36px;
             text-align: center;
             position: relative;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
         }
 
-        [data-theme="light"] .payment-card {
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        .payment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 36px;
+            right: 36px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            opacity: 0.5;
         }
 
         /* Logo/Brand */
         .brand {
             font-size: 1.8rem;
-            font-weight: 800;
+            font-weight: 900;
             color: var(--primary-color);
-            margin-bottom: 30px;
+            margin-bottom: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .brand i {
@@ -115,66 +76,74 @@
 
         /* Icon Circle */
         .icon-circle {
-            width: 80px;
-            height: 80px;
+            width: 84px;
+            height: 84px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), #2ecc40);
+            background: linear-gradient(135deg, var(--primary-color), #00FF88);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 25px;
-            box-shadow: 0 10px 40px rgba(57, 255, 20, 0.3);
+            margin: 0 auto 28px;
+            box-shadow: 0 12px 40px rgba(204, 255, 0, 0.3);
+            animation: pulse-glow 3s infinite;
         }
 
-        [data-theme="light"] .icon-circle {
-            box-shadow: 0 10px 40px rgba(22, 163, 74, 0.3);
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 12px 40px rgba(204, 255, 0, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 12px 60px rgba(204, 255, 0, 0.5);
+            }
         }
 
         .icon-circle i {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             color: #000;
         }
 
         /* Text Content */
         h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 800;
             margin-bottom: 12px;
             color: var(--text-primary);
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
             color: var(--text-secondary);
             font-size: 0.95rem;
-            margin-bottom: 30px;
-            line-height: 1.6;
+            margin-bottom: 32px;
+            line-height: 1.7;
         }
 
         /* Price Box */
         .price-box {
-            background: rgba(57, 255, 20, 0.08);
+            background: rgba(204, 255, 0, 0.08);
             border: 2px solid var(--primary-color);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
-        [data-theme="light"] .price-box {
-            background: rgba(22, 163, 74, 0.08);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 32px;
         }
 
         .price-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            font-weight: 500;
         }
 
         .price-amount {
-            font-size: 2.5rem;
-            font-weight: 800;
+            font-size: 2.8rem;
+            font-weight: 900;
             color: var(--primary-color);
+            letter-spacing: -1px;
         }
 
         .price-amount span {
@@ -185,31 +154,31 @@
         /* Features List */
         .features {
             text-align: left;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
         }
 
         .feature-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 0;
+            gap: 14px;
+            padding: 12px 0;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .feature-item i {
             color: var(--primary-color);
-            font-size: 1rem;
-            width: 20px;
+            font-size: 1.1rem;
+            width: 24px;
         }
 
         /* Pay Button */
         .btn-pay {
             width: 100%;
-            padding: 18px 30px;
-            background: linear-gradient(135deg, var(--primary-color), #2ecc40);
+            padding: 20px 32px;
+            background: linear-gradient(135deg, var(--primary-color), #9EFF00);
             border: none;
-            border-radius: 14px;
+            border-radius: 16px;
             color: #000;
             font-size: 1.1rem;
             font-weight: 700;
@@ -217,18 +186,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             transition: all 0.3s;
             font-family: inherit;
+            box-shadow: 0 6px 24px rgba(204, 255, 0, 0.25);
         }
 
         .btn-pay:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(57, 255, 20, 0.4);
+            box-shadow: 0 12px 36px rgba(204, 255, 0, 0.4);
         }
 
         .btn-pay:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .btn-pay.loading {
@@ -238,7 +208,7 @@
 
         /* Secure Badge */
         .secure-badge {
-            margin-top: 25px;
+            margin-top: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -262,42 +232,43 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: color 0.2s;
+            transition: all 0.2s;
         }
 
         .back-link:hover {
             color: var(--primary-color);
+            transform: translateX(-4px);
         }
 
         /* Mobile Optimizations */
         @media (max-width: 480px) {
             body {
-                padding: 15px;
+                padding: 16px;
                 justify-content: flex-start;
                 padding-top: 80px;
             }
 
             .payment-card {
-                padding: 30px 20px;
-                border-radius: 20px;
+                padding: 32px 24px;
+                border-radius: 24px;
             }
 
             .brand {
                 font-size: 1.5rem;
-                margin-bottom: 25px;
+                margin-bottom: 28px;
             }
 
             .icon-circle {
-                width: 70px;
-                height: 70px;
+                width: 72px;
+                height: 72px;
             }
 
             .icon-circle i {
-                font-size: 1.8rem;
+                font-size: 2rem;
             }
 
             h1 {
-                font-size: 1.3rem;
+                font-size: 1.4rem;
             }
 
             .subtitle {
@@ -305,83 +276,76 @@
             }
 
             .price-amount {
-                font-size: 2rem;
+                font-size: 2.2rem;
             }
 
             .btn-pay {
-                padding: 16px 25px;
+                padding: 18px 28px;
                 font-size: 1rem;
             }
 
             .back-link {
-                top: 15px;
-                left: 15px;
-            }
-
-            .theme-toggle {
-                top: 15px;
-                right: 15px;
-                width: 40px;
-                height: 40px;
+                top: 16px;
+                left: 16px;
             }
         }
 
         /* Very small screens */
         @media (max-width: 360px) {
             .payment-card {
-                padding: 25px 15px;
+                padding: 28px 20px;
             }
 
             .price-box {
-                padding: 15px;
+                padding: 18px;
             }
 
             .price-amount {
-                font-size: 1.8rem;
+                font-size: 2rem;
             }
         }
 
         /* Landscape mobile */
         @media (max-height: 600px) and (orientation: landscape) {
             body {
-                padding: 10px;
+                padding: 12px;
             }
 
             .payment-card {
-                padding: 20px;
+                padding: 24px;
                 max-width: 100%;
             }
 
             .icon-circle {
-                width: 50px;
-                height: 50px;
-                margin-bottom: 15px;
+                width: 56px;
+                height: 56px;
+                margin-bottom: 16px;
             }
 
             .icon-circle i {
-                font-size: 1.4rem;
+                font-size: 1.5rem;
             }
 
             h1 {
-                font-size: 1.2rem;
+                font-size: 1.25rem;
                 margin-bottom: 8px;
             }
 
             .subtitle {
-                margin-bottom: 15px;
+                margin-bottom: 16px;
             }
 
             .price-box {
-                padding: 12px;
-                margin-bottom: 15px;
+                padding: 14px;
+                margin-bottom: 16px;
             }
 
             .features {
-                margin-bottom: 15px;
+                margin-bottom: 16px;
             }
 
             .feature-item {
-                padding: 6px 0;
+                padding: 8px 0;
             }
         }
     </style>

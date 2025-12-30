@@ -1,149 +1,1076 @@
-/* ====== RESPONSIVE OVERRIDES ====== */
-/* This file is loaded LAST to override specific styles for mobile/tablet */
+/* ====== RESPONSIVE POLISH ====== */
+/* Mobile-first responsive design system */
+/* Supplement to luxury-theme.css */
 
-:root {
-    --header-height: 60px;
-}
-
-/* Global Sizing Adjustments */
+/* ===== GLOBAL SIZING ===== */
 html {
     font-size: 16px;
 }
 
 @media (max-width: 768px) {
     html {
-        font-size: 14px;
-        /* Scale down base font size */
-    }
-
-    body {
-        -webkit-text-size-adjust: 100%;
+        font-size: 15px;
     }
 }
 
-/* Touch Targets for Mobile */
-@media (max-width: 900px) {
+/* ===== PREVENT HORIZONTAL SCROLL ===== */
+html,
+body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+}
+
+/* ===== MOBILE TOP BAR FIXES ===== */
+.mobile-top-bar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    padding: 12px 16px;
+    z-index: 1000;
+    justify-content: space-between;
+    align-items: center;
+    background: transparent;
+    pointer-events: none;
+}
+
+.mobile-top-bar>* {
+    pointer-events: auto;
+}
+
+/* Back button in mobile top bar - FIX for clickable back button */
+.mobile-top-bar .floating-back-btn {
+    position: static !important;
+    box-shadow: none !important;
+    width: 44px;
+    height: 44px;
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.mobile-top-bar .floating-back-btn:hover,
+.mobile-top-bar .floating-back-btn:active {
+    background: rgba(20, 20, 20, 0.95);
+    border-color: var(--neon, #CCFF00);
+    color: var(--neon, #CCFF00);
+    transform: scale(1.05);
+}
+
+/* Mobile profile button styling */
+.mobile-profile-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.mobile-profile-btn:hover,
+.mobile-profile-btn:active {
+    background: rgba(20, 20, 20, 0.95);
+    border-color: var(--neon, #CCFF00);
+}
+
+/* ===== TOUCH TARGETS ===== */
+@media (max-width: 1024px) {
 
     button,
     .btn,
     .nav-item a,
     input,
     select,
-    .action-card,
-    .course-card,
-    .feature-card {
+    .list-action,
+    .btn-action {
         min-height: 44px;
-        /* Apple Human Interface Guidelines */
     }
 }
 
-/* Container Resets */
+/* ===== UTILITIES ===== */
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+@media (max-width: 1024px) {
+    .mobile-only {
+        display: block;
+    }
+
+    .desktop-only {
+        display: none;
+    }
+}
+
+/* ===== MOBILE MAIN LAYOUT ===== */
 @media (max-width: 1024px) {
 
-    .main-content,
-    .dashboard-container,
-    .hero,
-    .features,
-    .footer {
-        padding-left: 20px !important;
-        padding-right: 20px !important;
-        width: 100% !important;
-        margin-left: 0 !important;
-        max-width: 100% !important;
+    /* Show mobile top bar */
+    .mobile-top-bar {
+        display: flex;
     }
 
+    /* Hide sidebar */
     .sidebar {
-        /* Sidebar default hidden on tablet/mobile if not handled by JS toggling class */
-        transform: translateX(-100%);
-        box-shadow: none;
+        display: none !important;
     }
 
-    .sidebar.open {
-        transform: translateX(0);
-        box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5);
+    /* Main content takes full width */
+    .main-content {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 80px 16px 120px !important;
+        background: var(--bg-app, #050505) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        min-height: 100vh;
+    }
+
+    /* Header adjustments */
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 24px;
+        text-align: left;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        letter-spacing: -0.5px;
+    }
+
+    .greeting {
+        display: block !important;
+        color: var(--text-secondary, #888);
+        font-size: 0.9rem;
+        font-weight: 500;
     }
 }
 
-/* Grid & Flex Resets */
-@media (max-width: 768px) {
+/* ===== TASK LIST MOBILE STYLING ===== */
+.list-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-card, #111);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
 
-    .grid-container,
-    .features-grid,
-    .courses-grid,
-    .actions-grid,
-    .stats-container,
-    .stats-grid,
-    .form-grid {
-        grid-template-columns: 1fr !important;
+.list-item:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--bg-card-hover, #161616);
+}
+
+.list-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Task icon container */
+.list-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background: rgba(204, 255, 0, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon, #CCFF00);
+    font-size: 1.1rem;
+}
+
+/* Task content */
+.list-content {
+    flex: 1;
+    min-width: 0;
+    padding-right: 8px;
+}
+
+.list-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+    line-height: 1.3;
+    word-wrap: break-word;
+}
+
+.list-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #888);
+    line-height: 1.4;
+}
+
+/* Task action button */
+.list-action {
+    flex-shrink: 0;
+    padding: 10px 18px;
+    background: var(--neon, #CCFF00);
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.list-action:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(204, 255, 0, 0.3);
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.status-badge.success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+}
+
+.status-badge.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #F59E0B;
+}
+
+/* Mobile task list adjustments */
+@media (max-width: 1024px) {
+    .list-item {
+        flex-wrap: wrap;
+        padding: 14px;
+    }
+
+    .list-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .list-content {
+        flex: 1;
+        min-width: calc(100% - 140px);
+    }
+
+    .list-title {
+        font-size: 0.9rem;
+    }
+
+    .list-subtitle {
+        font-size: 0.75rem;
+    }
+
+    /* Right side content stacks on small screens */
+    .list-item>div:last-child {
+        text-align: right;
+        min-width: 80px;
+    }
+
+    .list-action {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== COURSES GRID MOBILE ===== */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 640px) {
+    .courses-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+/* Course card styling */
+.course-card {
+    background: var(--bg-card, #111);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.course-card:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.course-card.unlocked {
+    border-color: rgba(204, 255, 0, 0.2);
+}
+
+.course-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.course-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.course-thumbnail .placeholder-icon {
+    font-size: 3rem;
+    color: var(--text-secondary, #888);
+    opacity: 0.5;
+}
+
+/* Lock overlay */
+.lock-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.lock-overlay i {
+    font-size: 1.5rem;
+}
+
+.lock-overlay span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Unlocked badge */
+.unlocked-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Course content */
+.course-content {
+    padding: 20px;
+}
+
+.course-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.course-info {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    color: var(--text-secondary, #888);
+    font-size: 0.85rem;
+}
+
+.course-info span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.course-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--neon, #CCFF00);
+    margin-bottom: 16px;
+}
+
+/* Course action buttons */
+.course-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-play {
+    background: var(--neon, #CCFF00);
+    color: #000;
+}
+
+.btn-play:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(204, 255, 0, 0.3);
+}
+
+.btn-pay {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-pay:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--neon, #CCFF00);
+}
+
+.btn-pay.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.btn-details {
+    flex: 0 0 auto;
+    width: 44px;
+    min-width: 44px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary, #888);
+}
+
+.btn-details:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* Mobile course card adjustments */
+@media (max-width: 640px) {
+    .course-thumbnail {
+        height: 140px;
+    }
+
+    .course-content {
+        padding: 16px;
+    }
+
+    .course-title {
+        font-size: 1rem;
+    }
+
+    .course-info {
+        gap: 12px;
+        font-size: 0.8rem;
+    }
+
+    .course-price {
+        font-size: 1.1rem;
+    }
+
+    .btn-action {
+        padding: 10px 14px;
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary, #888);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state p,
+.empty-state h3 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-bottom-nav {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .mobile-bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        background: rgba(10, 10, 10, 0.95);
+        backdrop-filter: blur(20px);
+        padding: 12px 8px;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        z-index: 1000;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .nav-tab {
         display: flex;
         flex-direction: column;
-        gap: 16px !important;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 12px;
+        color: var(--text-secondary, #888);
+        text-decoration: none;
+        font-size: 0.65rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-radius: 12px;
     }
 
-    .flex-row {
-        flex-direction: column !important;
+    .nav-tab i {
+        font-size: 1.2rem;
     }
 
-    /* Reverse order for specific layouts if needed */
-    .flex-reverse-mobile {
-        flex-direction: column-reverse !important;
+    .nav-tab.active {
+        color: var(--neon, #CCFF00);
     }
 
-    /* Ensure images scale */
-    img {
-        max-width: 100%;
-        height: auto;
-    }
-
-    /* Form inputs full width */
-    .form-group,
-    .input-wrapper {
-        width: 100% !important;
-    }
-
-    /* Table Responsiveness */
-    .card-section,
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        display: block;
-        width: 100%;
-    }
-
-    table {
-        min-width: 600px;
-        /* Force minimum width to trigger scroll */
-    }
-
-    /* Stats grid specific */
-    .stats-grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
+    .nav-tab:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.05);
     }
 }
 
-/* Typography Adjustments */
-@media (max-width: 480px) {
-    h1 {
-        font-size: 2rem !important;
-        line-height: 1.2 !important;
+/* ===== FIX POTENTIAL GRAPHS/CHARTS OVERFLOW ===== */
+#earningsChart {
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+/* ===== FORM INPUTS MOBILE ===== */
+@media (max-width: 1024px) {
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"] {
+        font-size: 16px;
+        /* Prevent iOS zoom */
+    }
+}
+
+/* ===== BALANCE CARD MOBILE ===== */
+@media (max-width: 1024px) {
+    .balance-card {
+        padding: 24px 20px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
     }
 
-    h2 {
-        font-size: 1.5rem !important;
+    /* Hide cube decorations on mobile for cleaner look */
+    .balance-card .cube-decorations {
+        display: none !important;
     }
 
-    h3 {
+    /* Also hide background cubes in balance card */
+    .balance-card .cube-fragment {
+        display: none !important;
+    }
+
+    /* Center the balance content */
+    .balance-content {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .balance-label {
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .balance-amount {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .balance-amount .currency {
         font-size: 1.25rem !important;
+        color: var(--text-secondary, #888);
     }
 
-    .cta-btn {
+    .balance-amount .amount {
+        font-size: 2.5rem !important;
+        letter-spacing: -1px;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .balance-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .balance-actions .status-badge {
+        background: rgba(204, 255, 0, 0.1);
+        border: 1px solid rgba(204, 255, 0, 0.2);
+        color: var(--neon, #CCFF00);
+        padding: 8px 14px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .balance-actions .btn-outline {
+        background: var(--neon, #CCFF00);
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+    }
+
+    #pendingContainer {
+        justify-content: center !important;
+    }
+}
+
+/* Extra small mobile adjustments */
+@media (max-width: 380px) {
+    .balance-amount .amount {
+        font-size: 2rem !important;
+    }
+
+    .balance-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .balance-actions .status-badge,
+    .balance-actions .btn-outline {
         width: 100%;
         justify-content: center;
     }
+}
 
-    /* On very small screens, 1 col for stats */
+/* ===== ACTIONS GRID MOBILE ===== */
+@media (max-width: 1024px) {
+    .actions-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .action-card {
+        flex: 0 0 auto;
+        min-width: 100px;
+        padding: 14px 20px;
+    }
+}
+
+/* ===== REFERRAL CARDS MOBILE ===== */
+@media (max-width: 1024px) {
+
+    .referral-card,
+    .referral-box {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .referral-link {
+        font-size: 0.75rem;
+        word-break: break-all;
+    }
+}
+
+/* ===== STAT ITEMS MOBILE ===== */
+@media (max-width: 1024px) {
+    .earnings-stats {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .stat-item {
+        padding: 12px 8px !important;
+    }
+
+    .stat-value {
+        font-size: 1.1rem !important;
+    }
+
+    .stat-label {
+        font-size: 0.65rem !important;
+    }
+}
+
+/* ===== SCROLLBAR HIDE ON MOBILE ===== */
+@media (max-width: 1024px) {
+    ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        display: none;
+    }
+
+    * {
+        scrollbar-width: none;
+    }
+}
+
+/* ===== STATS GRID MOBILE ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--bg-card, #111);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--neon, #CCFF00);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 640px) {
     .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .stat-card {
+        padding: 14px 10px;
+        border-radius: 12px;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+    }
+}
+
+/* ===== REFERRAL BOX MOBILE ===== */
+.ref-box,
+.referral-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.referral-link {
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #888);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.copy-btn {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: rgba(204, 255, 0, 0.1);
+    border: none;
+    border-radius: 10px;
+    color: var(--neon, #CCFF00);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: var(--neon, #CCFF00);
+    color: #000;
+}
+
+@media (max-width: 640px) {
+
+    .ref-box,
+    .referral-box {
+        padding: 12px;
+    }
+
+    .referral-link {
+        font-size: 0.7rem;
+    }
+
+    .copy-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* ===== TIER BADGES MOBILE ===== */
+.tier-badge {
+    transition: all 0.2s ease;
+}
+
+@media (max-width: 640px) {
+    .tier-badge {
+        padding: 8px 6px !important;
+        min-width: 0;
+    }
+
+    .tier-badge i {
+        font-size: 1rem !important;
+    }
+
+    .tier-badge div {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* ===== CARD MOBILE ===== */
+.card {
+    background: var(--bg-card, #111);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+    .card {
+        padding: 20px 16px;
+        border-radius: 16px;
+        max-width: 100% !important;
+    }
+}
+
+/* ===== SECTION LABEL MOBILE ===== */
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary, #888);
+    margin-bottom: 16px;
+    margin-top: 32px;
+}
+
+@media (max-width: 1024px) {
+    .section-label {
+        font-size: 0.7rem;
+        margin-bottom: 12px;
+        margin-top: 24px;
+    }
+
+    .section-label:first-of-type,
+    .main-content>.section-label:first-child {
+        margin-top: 0;
+    }
+}
+
+/* ===== RESOURCES GRID MOBILE ===== */
+@media (max-width: 640px) {
+    .resources-grid {
         grid-template-columns: 1fr !important;
+        gap: 16px;
+    }
+
+    .resource-card {
+        padding: 20px !important;
+    }
+
+    .resource-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+    }
+
+    .resource-title {
+        font-size: 1.1rem;
+    }
+
+    .category-tag {
+        top: 16px;
+        right: 16px;
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+}
+
+/* ===== CHART/GRAPH MOBILE ===== */
+@media (max-width: 640px) {
+    #earningsChart {
+        height: 140px !important;
+        gap: 8px !important;
+    }
+
+    .chart-bar {
+        font-size: 0.65rem;
+    }
+}
+
+/* ===== FORM ELEMENTS MOBILE ===== */
+@media (max-width: 1024px) {
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        padding: 14px 16px;
+        font-size: 16px;
+        /* Prevent iOS zoom */
+    }
+
+    .btn-primary {
+        padding: 16px 24px;
+        font-size: 1rem;
+        width: 100%;
+    }
+}
+
+/* ===== WITHDRAW PAGE MOBILE ===== */
+@media (max-width: 640px) {
+    .card[style*="max-width: 500px"] {
+        max-width: 100% !important;
+    }
+}
+
+/* ===== GENERAL MOBILE POLISH ===== */
+@media (max-width: 1024px) {
+
+    /* Prevent text selection flicker on tap */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Smooth animations */
+    button,
+    a,
+    .nav-tab,
+    .action-card,
+    .course-card,
+    .list-item {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+
+    /* Fix for iOS safari viewport issues */
+    html {
+        height: -webkit-fill-available;
+    }
+
+    body {
+        min-height: -webkit-fill-available;
     }
 }

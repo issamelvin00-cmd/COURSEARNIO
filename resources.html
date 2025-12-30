@@ -4,12 +4,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withdraw - Earnio</title>
+    <title>Resources - Earnio</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="luxury-theme.css">
     <link rel="stylesheet" href="responsive.css">
+    <style>
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .resource-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-card);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.3s var(--ease-squish);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--neon);
+            box-shadow: var(--shadow-card);
+        }
+
+        .resource-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--neon);
+            margin-bottom: 8px;
+        }
+
+        .resource-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .resource-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--neon);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: auto;
+            text-decoration: none;
+            transition: gap 0.2s;
+        }
+
+        .resource-link:hover {
+            gap: 12px;
+        }
+
+        .category-tag {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border: 1px solid var(--border-subtle);
+            padding: 4px 10px;
+            border-radius: 50px;
+        }
+    </style>
 </head>
 
 <body>
@@ -55,6 +137,11 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="resources.html" class="active">
+                    <i class="fas fa-box-open"></i> Resources
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="profile.html">
                     <i class="fas fa-user"></i> Profile
                 </a>
@@ -82,57 +169,44 @@
     <!-- MAIN CONTENT -->
     <div class="main-content">
         <div class="header">
-            <div class="greeting">Cash out your earnings 💰</div>
-            <div class="page-title">Withdraw</div>
+            <div class="greeting">Tools for Success 🛠️</div>
+            <div class="page-title">Resources</div>
         </div>
 
-        <!-- BALANCE CARD -->
-        <div class="card" style="max-width: 500px;">
-            <div style="text-align: center; padding: 20px 0 30px;">
-                <div
-                    style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
-                    Available Balance</div>
-                <div style="font-size: 3rem; font-weight: 700;">
-                    <span style="color: var(--text-secondary); font-size: 1.5rem;">KES</span>
-                    <span style="color: var(--neon);" id="maxBalance">0</span>
-                </div>
+        <div class="resources-grid">
+            <!-- Resource Item -->
+            <div class="resource-card">
+                <div class="category-tag">Design</div>
+                <div class="resource-icon"><i class="fas fa-palette"></i></div>
+                <h3 class="resource-title">Canva Pro</h3>
+                <p class="resource-desc">Create stunning graphics for your marketing campaigns with our shared team
+                    access.</p>
+                <a href="#" class="resource-link">Access Tool <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="form-group">
-                <label>M-Pesa Phone Number</label>
-                <input type="text" id="phone" placeholder="e.g. 0712345678">
+            <div class="resource-card">
+                <div class="category-tag">Marketing</div>
+                <div class="resource-icon"><i class="fas fa-bullhorn"></i></div>
+                <h3 class="resource-title">Ad Copy Generator</h3>
+                <p class="resource-desc">Generate high-converting ad copy for Facebook and Instagram ads instantly.</p>
+                <a href="#" class="resource-link">Open Generator <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="form-group">
-                <label>Amount (Min KES 150)</label>
-                <input type="number" id="amount" placeholder="Amount to withdraw">
+            <div class="resource-card">
+                <div class="category-tag">Finance</div>
+                <div class="resource-icon"><i class="fas fa-calculator"></i></div>
+                <h3 class="resource-title">Profit Calculator</h3>
+                <p class="resource-desc">Calculate your margins and potential earnings from your courses and referrals.
+                </p>
+                <a href="#" class="resource-link">Use Calculator <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <button class="btn-primary" style="width: 100%;" onclick="requestWithdraw()">
-                <i class="fas fa-paper-plane"></i> Submit Request
-            </button>
-
-            <!-- Weekly Payment Notice -->
-            <div
-                style="margin-top: 20px; padding: 16px; background: rgba(57, 255, 20, 0.1); border: 1px solid rgba(57, 255, 20, 0.3); border-radius: 12px; display: flex; align-items: flex-start; gap: 12px;">
-                <i class="fas fa-info-circle" style="color: var(--neon); font-size: 1.2rem; margin-top: 2px;"></i>
-                <div>
-                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Payment Schedule
-                    </div>
-                    <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
-                        Withdrawals are processed <strong style="color: var(--neon);">every week</strong>.
-                        Requests submitted will be paid out in the next weekly payment cycle.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- WITHDRAWAL HISTORY -->
-        <div class="section-label" style="margin-top: 40px;">Recent Requests</div>
-        <div id="historyList">
-            <div class="empty-state">
-                <i class="fas fa-history"></i>
-                <p>No withdrawal requests yet</p>
+            <div class="resource-card">
+                <div class="category-tag">Learning</div>
+                <div class="resource-icon"><i class="fas fa-book"></i></div>
+                <h3 class="resource-title">E-Book Library</h3>
+                <p class="resource-desc">Download exclusive PDF guides on digital marketing and sales strategies.</p>
+                <a href="#" class="resource-link">Browse Library <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
 
@@ -159,21 +233,16 @@
             }
         }
 
-        async function loadData() {
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        async function loadUserData() {
             try {
                 const res = await fetch('/dashboard/data', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        localStorage.removeItem('token');
-                        window.location.href = 'login.html';
-                        return;
-                    }
-                    throw new Error('Failed');
-                }
-
                 const data = await res.json();
 
                 document.getElementById('sidebarEmail').textContent = data.user.email.split('@')[0];
@@ -204,55 +273,14 @@
                 } else if (sidebarAv) {
                     sidebarAv.textContent = data.user.email.charAt(0).toUpperCase();
                 }
-                document.getElementById('maxBalance').textContent = data.wallet.balanceKES.toLocaleString();
 
                 if (data.user.isAdmin) {
                     document.getElementById('adminNavItem').style.display = 'block';
                 }
-
-            } catch (err) {
-                console.error('Load error:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        async function requestWithdraw() {
-            const phone = document.getElementById('phone').value;
-            const amount = document.getElementById('amount').value;
-
-            if (!phone || !amount) {
-                alert('Please fill all fields');
-                return;
-            }
-
-            try {
-                const res = await fetch('/withdraw', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ phone, amount })
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    alert('Request submitted! Admin will process it shortly.');
-                    window.location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            } catch (err) {
-                alert('Connection failed');
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = 'login.html';
-        }
-
-        loadData();
+        loadUserData();
     </script>
 
     <!-- MOBILE BOTTOM NAVIGATION -->

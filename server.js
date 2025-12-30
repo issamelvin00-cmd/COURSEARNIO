@@ -8,6 +8,45 @@ require('dotenv').config({ path: '.env.local' });
 
 const { supabase, supabaseAdmin } = require('./lib/supabase');
 const { authenticateToken, requireAdmin, isUserPaid, userOwnsCourse } = require('./lib/auth-helpers');
+const dns = require('dns');
+
+// === EMAIL VALIDATION CONSTANTS ===
+const DISPOSABLE_DOMAINS = new Set([
+    'tempmail.com', 'throwawaymail.com', 'mailinator.com', 'guerrillamail.com', 'yopmail.com',
+    '10minutemail.com', 'temp-mail.org', 'fake-mail.com', 'trashmail.com', 'emailondeck.com',
+    'maildrop.cc', 'dispostable.com', 'mytemp.email', 'tempail.com', 'sharklasers.com',
+    'getairmail.com', 'grr.la', 'guerrillamailblock.com', 'spam4.me', 'guerrillamail.net',
+    'guerrillamail.org', 'guerrillamail.biz', 'guerrillamail.info', 'pokemail.net',
+    'jourrapide.com', 'gustr.com', 'remarqs.com', 'superrito.com', 'teleworm.us'
+]);
+
+async function validateEmail(email) {
+    // 1. Syntax Check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return { valid: false, reason: 'Invalid email format' };
+    }
+
+    const domain = email.split('@')[1].toLowerCase();
+
+    // 2. Disposable Domain Check
+    if (DISPOSABLE_DOMAINS.has(domain)) {
+        return { valid: false, reason: 'Temporary email providers are not accepted' };
+    }
+
+    // 3. DNS MX Record Check
+    try {
+        const mxRecords = await dns.promises.resolveMx(domain);
+        if (!mxRecords || mxRecords.length === 0) {
+            return { valid: false, reason: 'Email domain does not exist or has no mail servers' };
+        }
+    } catch (err) {
+        // NODATA or FORMERR etc.
+        return { valid: false, reason: 'Could not verify email domain existence' };
+    }
+
+    return { valid: true };
+}
 
 const app = express();
 
@@ -28,8 +67,52 @@ const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_UNIT = 100;
 const SIGNUP_FEE_KES = 100;
 const REFERRAL_REWARD_KES = 50;
+const DEFAULT_COMMISSION_PERCENT = 20;  // Default fallback (Tier 1: Bronze)
 const SIGNUP_FEE_UNITS = SIGNUP_FEE_KES * PAYSTACK_UNIT;
 const REFERRAL_REWARD_UNITS = REFERRAL_REWARD_KES * PAYSTACK_UNIT;
+
+// Tiered Commission Rates (Bronze/Silver/Gold)
+const TIER_CONFIG = {
+    bronze: { minReferrals: 0, percent: 20 },
+    silver: { minReferrals: 10, percent: 30 },
+    gold: { minReferrals: 50, percent: 40 }
+};
+
+// ===================================
+// HELPER: Get referrer's commission rate based on their tier
+// ===================================
+async function getReferrerCommissionRate(referrerId) {
+    try {
+        // Count paid referrals for this user
+        const { count, error } = await supabaseAdmin
+            .from('referrals')
+            .select('*', { count: 'exact', head: true })
+            .eq('referrer_id', referrerId)
+            .eq('status', 'paid');
+
+        if (error) {
+            console.error('[TIER] Error counting referrals:', error);
+            return DEFAULT_COMMISSION_PERCENT;
+        }
+
+        const referralCount = count || 0;
+
+        // Determine tier based on referral count
+        if (referralCount >= TIER_CONFIG.gold.minReferrals) {
+            console.log(`[TIER] User ${referrerId} is GOLD tier (${referralCount} referrals) - ${TIER_CONFIG.gold.percent}%`);
+            return TIER_CONFIG.gold.percent;
+        } else if (referralCount >= TIER_CONFIG.silver.minReferrals) {
+            console.log(`[TIER] User ${referrerId} is SILVER tier (${referralCount} referrals) - ${TIER_CONFIG.silver.percent}%`);
+            return TIER_CONFIG.silver.percent;
+        } else {
+            console.log(`[TIER] User ${referrerId} is BRONZE tier (${referralCount} referrals) - ${TIER_CONFIG.bronze.percent}%`);
+            return TIER_CONFIG.bronze.percent;
+        }
+    } catch (err) {
+        console.error('[TIER] Exception getting commission rate:', err);
+        return DEFAULT_COMMISSION_PERCENT;
+    }
+}
 
 if (!PAYSTACK_SECRET) {
     console.error('Missing PAYSTACK_SECRET_KEY');
@@ -78,7 +161,7 @@ app.post('/webhooks/paystack', express.raw({ type: 'application/json' }), async 
                     const courseId = parts[1];
                     const userId = parts[3];
 
-                    console.log('Course purchase webhook:', { courseId, userId });
+                    console.log('Course purchase webhook:', { courseId, userId, amount });
 
                     // Check if already purchased
                     const { data: existing } = await supabaseAdmin
@@ -103,6 +186,72 @@ app.post('/webhooks/paystack', express.raw({ type: 'application/json' }), async 
                             console.error('Webhook course purchase error:', purchaseError);
                         } else {
                             console.log('Course access granted via webhook');
+
+                            // ====== REFERRAL COMMISSION ======
+                            // Get buyer's referrer
+                            const { data: buyerProfile } = await supabaseAdmin
+                                .from('profiles')
+                                .select('referred_by')
+                                .eq('id', userId)
+                                .single();
+
+                            if (buyerProfile?.referred_by) {
+                                const referrerId = buyerProfile.referred_by;
+
+                                // Get dynamic commission rate based on referrer's tier
+                                const commissionPercent = await getReferrerCommissionRate(referrerId);
+                                const commissionUnits = Math.floor(amount * commissionPercent / 100);
+
+                                console.log(`[COMMISSION] Processing ${commissionPercent}% commission for referrer ${referrerId}: ${commissionUnits} units`);
+
+                                // Get referrer's current wallet balance
+                                const { data: referrerWallet } = await supabaseAdmin
+                                    .from('wallets')
+                                    .select('balance_units')
+                                    .eq('user_id', referrerId)
+                                    .single();
+
+                                // Credit referrer's wallet
+                                const { error: walletError } = await supabaseAdmin
+                                    .from('wallets')
+                                    .update({
+                                        balance_units: (referrerWallet?.balance_units || 0) + commissionUnits
+                                    })
+                                    .eq('user_id', referrerId);
+
+                                if (walletError) {
+                                    console.error('[COMMISSION] Wallet credit error:', walletError);
+                                } else {
+                                    console.log(`[COMMISSION] Credited ${commissionUnits} units (${commissionUnits / 100} KES) to referrer ${referrerId}`);
+
+                                    // Record commission transaction
+                                    const commissionRef = `COMM_${courseId}_${userId}_${Date.now()}`;
+                                    await supabaseAdmin
+                                        .from('transactions')
+                                        .insert({
+                                            reference: commissionRef,
+                                            user_id: referrerId,
+                                            amount_units: commissionUnits,
+                                            status: 'success',
+                                            metadata: {
+                                                type: 'course_commission',
+                                                source_user: userId,
+                                                course_id: courseId,
+                                                percent: commissionPercent
+                                            }
+                                        });
+
+                                    // Record in referrals table
+                                    await supabaseAdmin
+                                        .from('referrals')
+                                        .insert({
+                                            referrer_id: referrerId,
+                                            referred_user_id: userId,
+                                            reward_units: commissionUnits,
+                                            status: 'paid'
+                                        });
+                                }
+                            }
                         }
 
                         // Also update any pending order
@@ -141,9 +290,14 @@ app.post('/webhooks/paystack', express.raw({ type: 'application/json' }), async 
 // ===================================
 
 app.post('/auth/signup', async (req, res) => {
-    const { email, password, referralCode } = req.body;
+    const { email, password, referralCode, cookieReferralCode } = req.body;
     if (!email || !password) {
         return res.status(400).json({ message: 'Email and password required' });
+    }
+
+    const validation = await validateEmail(email);
+    if (!validation.valid) {
+        return res.status(400).json({ message: validation.reason });
     }
 
     try {
@@ -162,16 +316,31 @@ app.post('/auth/signup', async (req, res) => {
         const userId = authData.user.id;
         const userRefCode = 'USER' + Date.now().toString().slice(-6);
 
-        // Find referrer if referral code provided
+        // Find referrer - use referralCode, fallback to cookieReferralCode
         let referrerId = null;
-        if (referralCode) {
+        const effectiveRefCode = referralCode || cookieReferralCode;
+
+        if (effectiveRefCode) {
+            console.log(`[SIGNUP] Looking up referrer with code: ${effectiveRefCode}`);
+
             const { data: referrer } = await supabaseAdmin
                 .from('profiles')
                 .select('id')
-                .eq('referral_code', referralCode)
+                .eq('referral_code', effectiveRefCode)
                 .single();
 
-            referrerId = referrer?.id || null;
+            if (referrer) {
+                // BLOCK SELF-REFERRALS
+                if (referrer.id === userId) {
+                    console.log(`[SIGNUP] Blocked self-referral attempt for user ${userId}`);
+                    referrerId = null;
+                } else {
+                    referrerId = referrer.id;
+                    console.log(`[SIGNUP] Referrer found: ${referrerId} for new user ${userId}`);
+                }
+            } else {
+                console.log(`[SIGNUP] No referrer found for code: ${effectiveRefCode}`);
+            }
         }
 
         // Check if this is the first user (make them admin)
@@ -302,7 +471,7 @@ app.get('/dashboard/data', authenticateToken, async (req, res) => {
         // Get user profile
         const { data: profile } = await supabaseAdmin
             .from('profiles')
-            .select('is_paid, referral_code, is_admin')
+            .select('is_paid, referral_code, is_admin, full_name, phone, avatar_url, username')
             .eq('id', userId)
             .single();
 
@@ -342,7 +511,11 @@ app.get('/dashboard/data', authenticateToken, async (req, res) => {
                 email: req.user.email,
                 referralCode: profile.referral_code,
                 isPaid: !!profile.is_paid,
-                isAdmin: !!profile.is_admin
+                isAdmin: !!profile.is_admin,
+                full_name: profile.full_name,
+                phone: profile.phone,
+                avatar_url: profile.avatar_url || 'owl',
+                username: profile.username || ''
             },
             wallet: {
                 balanceKES: (wallet?.balance_units || 0) / PAYSTACK_UNIT,
@@ -354,6 +527,457 @@ app.get('/dashboard/data', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('Dashboard data error:', err);
         res.status(500).json({ message: 'Failed to fetch data' });
+    }
+});
+
+app.put('/profile', authenticateToken, async (req, res) => {
+    const { full_name, phone, avatar_url, username } = req.body;
+    const userId = req.user.id;
+
+    try {
+        const updates = { updated_at: new Date().toISOString() };
+        if (full_name !== undefined) updates.full_name = full_name;
+        if (phone !== undefined) updates.phone = phone;
+        if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+        if (username !== undefined) updates.username = username;
+
+        const { error } = await supabaseAdmin
+            .from('profiles')
+            .update(updates)
+            .eq('id', userId);
+
+        if (error) throw error;
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Profile update error:', err);
+        res.status(500).json({ message: 'Failed to update profile' });
+    }
+});
+
+
+// ===================================
+// REFERRAL EARNINGS API
+// ===================================
+
+app.get('/referrals/earnings', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        // Get user's referral code
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('referral_code')
+            .eq('id', userId)
+            .single();
+
+        // Get all referral earnings (signup bonuses + course commissions)
+        const { data: referralTxns } = await supabaseAdmin
+            .from('transactions')
+            .select('amount_units, status, created_at, metadata')
+            .eq('user_id', userId)
+            .or('metadata->>type.eq.referral_bonus,metadata->>type.eq.course_commission')
+            .order('created_at', { ascending: false });
+
+        // Calculate totals
+        let totalEarned = 0;
+        let signupBonuses = 0;
+        let courseCommissions = 0;
+        const recentEarnings = [];
+
+        referralTxns?.forEach(txn => {
+            const amountKES = (txn.amount_units || 0) / PAYSTACK_UNIT;
+            if (txn.status === 'success') {
+                totalEarned += amountKES;
+                if (txn.metadata?.type === 'referral_bonus') {
+                    signupBonuses += amountKES;
+                } else if (txn.metadata?.type === 'course_commission') {
+                    courseCommissions += amountKES;
+                }
+            }
+            recentEarnings.push({
+                amount: amountKES,
+                type: txn.metadata?.type || 'referral',
+                status: txn.status,
+                date: txn.created_at
+            });
+        });
+
+        // Get count of successful referrals
+        const { count: referralCount } = await supabaseAdmin
+            .from('referrals')
+            .select('*', { count: 'exact', head: true })
+            .eq('referrer_id', userId);
+
+        // Get wallet balance (withdrawable)
+        const { data: wallet } = await supabaseAdmin
+            .from('wallets')
+            .select('balance_units')
+            .eq('user_id', userId)
+            .single();
+
+        const withdrawable = (wallet?.balance_units || 0) / PAYSTACK_UNIT;
+
+        // Get user's current commission rate
+        const userCommissionPercent = await getReferrerCommissionRate(userId);
+
+        res.json({
+            referralCode: profile?.referral_code,
+            referralLink: `${req.protocol}://${req.get('host')}/signup.html?ref=${profile?.referral_code}`,
+            stats: {
+                totalEarned,
+                signupBonuses,
+                courseCommissions,
+                withdrawable,
+                referralCount: referralCount || 0,
+                commissionPercent: userCommissionPercent,
+                signupBonus: REFERRAL_REWARD_KES,
+                tierConfig: TIER_CONFIG
+            },
+            recentEarnings: recentEarnings.slice(0, 10)
+        });
+
+    } catch (err) {
+        console.error('Referral earnings error:', err);
+        res.status(500).json({ message: 'Failed to fetch referral earnings' });
+    }
+});
+
+// ===================================
+// REFERRAL LEADERBOARD API
+// ===================================
+
+app.get('/referrals/leaderboard', async (req, res) => {
+    try {
+        // Get top referrers by total earnings this month
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const { data: topEarners } = await supabaseAdmin
+            .from('transactions')
+            .select('user_id, amount_units')
+            .or('metadata->>type.eq.referral_bonus,metadata->>type.eq.course_commission')
+            .eq('status', 'success')
+            .gte('created_at', startOfMonth.toISOString());
+
+        // Aggregate by user
+        const earningsMap = {};
+        topEarners?.forEach(txn => {
+            if (!earningsMap[txn.user_id]) {
+                earningsMap[txn.user_id] = 0;
+            }
+            earningsMap[txn.user_id] += txn.amount_units || 0;
+        });
+
+        // Sort and get top 10
+        const sorted = Object.entries(earningsMap)
+            .map(([userId, total]) => ({ userId, totalUnits: total }))
+            .sort((a, b) => b.totalUnits - a.totalUnits)
+            .slice(0, 10);
+
+        // Get user emails for display
+        const leaderboard = await Promise.all(sorted.map(async (entry, index) => {
+            const { data: profile } = await supabaseAdmin
+                .from('profiles')
+                .select('email')
+                .eq('id', entry.userId)
+                .single();
+
+            return {
+                rank: index + 1,
+                email: profile?.email ? profile.email.split('@')[0] + '@...' : 'User',
+                earnings: entry.totalUnits / PAYSTACK_UNIT
+            };
+        }));
+
+        res.json({
+            month: startOfMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            leaderboard
+        });
+
+    } catch (err) {
+        console.error('Leaderboard error:', err);
+        res.status(500).json({ message: 'Failed to fetch leaderboard' });
+    }
+});
+
+// ===================================
+// REFERRAL TIER STATUS API
+// ===================================
+
+app.get('/referrals/tier-status', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        // Count paid referrals
+        const { count: referralCount } = await supabaseAdmin
+            .from('referrals')
+            .select('*', { count: 'exact', head: true })
+            .eq('referrer_id', userId)
+            .eq('status', 'paid');
+
+        const currentCount = referralCount || 0;
+
+        // Determine current tier and next tier
+        let currentTier, nextTier, referralsToNextTier;
+
+        if (currentCount >= TIER_CONFIG.gold.minReferrals) {
+            currentTier = { name: 'Gold', ...TIER_CONFIG.gold };
+            nextTier = null;
+            referralsToNextTier = 0;
+        } else if (currentCount >= TIER_CONFIG.silver.minReferrals) {
+            currentTier = { name: 'Silver', ...TIER_CONFIG.silver };
+            nextTier = { name: 'Gold', ...TIER_CONFIG.gold };
+            referralsToNextTier = TIER_CONFIG.gold.minReferrals - currentCount;
+        } else {
+            currentTier = { name: 'Bronze', ...TIER_CONFIG.bronze };
+            nextTier = { name: 'Silver', ...TIER_CONFIG.silver };
+            referralsToNextTier = TIER_CONFIG.silver.minReferrals - currentCount;
+        }
+
+        res.json({
+            currentReferrals: currentCount,
+            currentTier,
+            nextTier,
+            referralsToNextTier,
+            allTiers: [
+                { name: 'Bronze', ...TIER_CONFIG.bronze },
+                { name: 'Silver', ...TIER_CONFIG.silver },
+                { name: 'Gold', ...TIER_CONFIG.gold }
+            ]
+        });
+
+    } catch (err) {
+        console.error('Tier status error:', err);
+        res.status(500).json({ message: 'Failed to fetch tier status' });
+    }
+});
+
+// ===================================
+// WALLET EARNINGS BREAKDOWN API
+// ===================================
+
+app.get('/wallet/earnings-breakdown', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        // Get earnings grouped by course
+        const { data: commissions } = await supabaseAdmin
+            .from('transactions')
+            .select('amount_units, metadata, created_at')
+            .eq('user_id', userId)
+            .eq('status', 'success')
+            .eq('metadata->>type', 'course_commission');
+
+        // Aggregate by course
+        const byCourse = {};
+        for (const txn of commissions || []) {
+            const courseId = txn.metadata?.course_id || 'unknown';
+            if (!byCourse[courseId]) {
+                byCourse[courseId] = { totalUnits: 0, count: 0 };
+            }
+            byCourse[courseId].totalUnits += txn.amount_units || 0;
+            byCourse[courseId].count += 1;
+        }
+
+        // Get course titles
+        const courseIds = Object.keys(byCourse).filter(id => id !== 'unknown');
+        const { data: courses } = await supabaseAdmin
+            .from('courses')
+            .select('id, title')
+            .in('id', courseIds.map(id => parseInt(id)));
+
+        const courseMap = {};
+        courses?.forEach(c => courseMap[c.id] = c.title);
+
+        // Build breakdown
+        const breakdown = Object.entries(byCourse).map(([courseId, data]) => ({
+            courseId,
+            courseTitle: courseMap[courseId] || 'Unknown Course',
+            totalKES: data.totalUnits / PAYSTACK_UNIT,
+            transactionCount: data.count
+        }));
+
+        // Get signup bonuses total
+        const { data: signupBonuses } = await supabaseAdmin
+            .from('transactions')
+            .select('amount_units')
+            .eq('user_id', userId)
+            .eq('status', 'success')
+            .eq('metadata->>type', 'referral_bonus');
+
+        const signupTotal = (signupBonuses || []).reduce((sum, t) => sum + (t.amount_units || 0), 0);
+
+        res.json({
+            courseCommissions: breakdown,
+            signupBonuses: {
+                totalKES: signupTotal / PAYSTACK_UNIT,
+                count: (signupBonuses || []).length
+            }
+        });
+
+    } catch (err) {
+        console.error('Earnings breakdown error:', err);
+        res.status(500).json({ message: 'Failed to fetch earnings breakdown' });
+    }
+});
+
+// ===================================
+// COURSE PROGRESS API
+// ===================================
+
+app.get('/courses/:courseId/progress', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const courseId = parseInt(req.params.courseId);
+
+    try {
+        // Get total lessons
+        const { data: lessons } = await supabaseAdmin
+            .from('lessons')
+            .select('id')
+            .eq('course_id', courseId);
+
+        const totalLessons = lessons?.length || 0;
+
+        // Get completed lessons
+        const { data: progress } = await supabaseAdmin
+            .from('lesson_progress')
+            .select('lesson_id')
+            .eq('user_id', userId)
+            .eq('completed', true)
+            .in('lesson_id', lessons?.map(l => l.id) || []);
+
+        const completedLessons = progress?.length || 0;
+        const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+        // Check for milestones
+        const { data: milestones } = await supabaseAdmin
+            .from('course_milestones')
+            .select('*')
+            .lte('percent_threshold', progressPercent)
+            .order('percent_threshold', { ascending: true });
+
+        // Get earned achievements
+        const { data: earned } = await supabaseAdmin
+            .from('user_achievements')
+            .select('milestone_id, earned_at')
+            .eq('user_id', userId)
+            .eq('course_id', courseId);
+
+        const earnedIds = new Set(earned?.map(e => e.milestone_id) || []);
+
+        res.json({
+            courseId,
+            totalLessons,
+            completedLessons,
+            progressPercent,
+            milestones: (milestones || []).map(m => ({
+                ...m,
+                earned: earnedIds.has(m.id)
+            })),
+            isComplete: progressPercent === 100
+        });
+
+    } catch (err) {
+        console.error('Course progress error:', err);
+        res.status(500).json({ message: 'Failed to fetch progress' });
+    }
+});
+
+// Mark milestone as earned (called when user hits threshold)
+app.post('/progress/check-milestones', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const { courseId } = req.body;
+
+    if (!courseId) {
+        return res.status(400).json({ message: 'courseId required' });
+    }
+
+    try {
+        // Get current progress
+        const { data: lessons } = await supabaseAdmin
+            .from('lessons')
+            .select('id')
+            .eq('course_id', courseId);
+
+        const { data: progress } = await supabaseAdmin
+            .from('lesson_progress')
+            .select('lesson_id')
+            .eq('user_id', userId)
+            .eq('completed', true)
+            .in('lesson_id', lessons?.map(l => l.id) || []);
+
+        const totalLessons = lessons?.length || 0;
+        const completedLessons = progress?.length || 0;
+        const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+        // Get milestones user qualifies for
+        const { data: milestones } = await supabaseAdmin
+            .from('course_milestones')
+            .select('*')
+            .lte('percent_threshold', progressPercent);
+
+        // Get already earned
+        const { data: alreadyEarned } = await supabaseAdmin
+            .from('user_achievements')
+            .select('milestone_id')
+            .eq('user_id', userId)
+            .eq('course_id', courseId);
+
+        const earnedIds = new Set(alreadyEarned?.map(e => e.milestone_id) || []);
+        const newlyEarned = [];
+
+        // Award new milestones
+        for (const milestone of milestones || []) {
+            if (!earnedIds.has(milestone.id)) {
+                await supabaseAdmin
+                    .from('user_achievements')
+                    .insert({
+                        user_id: userId,
+                        course_id: courseId,
+                        milestone_id: milestone.id
+                    });
+                newlyEarned.push(milestone);
+            }
+        }
+
+        // Generate certificate if 100% complete
+        let certificate = null;
+        if (progressPercent === 100) {
+            const { data: existingCert } = await supabaseAdmin
+                .from('certificates')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('course_id', courseId)
+                .single();
+
+            if (!existingCert) {
+                const certNumber = `CERT-${courseId}-${Date.now().toString(36).toUpperCase()}`;
+                const { data: newCert } = await supabaseAdmin
+                    .from('certificates')
+                    .insert({
+                        user_id: userId,
+                        course_id: courseId,
+                        certificate_number: certNumber
+                    })
+                    .select()
+                    .single();
+                certificate = newCert;
+            } else {
+                certificate = existingCert;
+            }
+        }
+
+        res.json({
+            progressPercent,
+            newlyEarnedMilestones: newlyEarned,
+            certificate
+        });
+
+    } catch (err) {
+        console.error('Milestone check error:', err);
+        res.status(500).json({ message: 'Failed to check milestones' });
     }
 });
 
@@ -429,63 +1053,69 @@ app.post('/pay/mark-paid', authenticateToken, async (req, res) => {
         if (existingProfile?.referred_by) {
             console.log(`[MARK-PAID] Processing referral bonus for referrer: ${existingProfile.referred_by}`);
 
-            // Check if referral bonus already paid
-            const { data: existingRef } = await supabaseAdmin
-                .from('referrals')
-                .select('id')
-                .eq('referred_user_id', userId)
-                .single();
-
-            if (!existingRef) {
-                const reward = REFERRAL_REWARD_UNITS;
-
-                // Get referrer's current wallet balance
-                const { data: referrerWallet } = await supabaseAdmin
-                    .from('wallets')
-                    .select('balance_units')
-                    .eq('user_id', existingProfile.referred_by)
-                    .single();
-
-                // Credit referrer wallet
-                await supabaseAdmin
-                    .from('wallets')
-                    .update({
-                        balance_units: (referrerWallet?.balance_units || 0) + reward
-                    })
-                    .eq('user_id', existingProfile.referred_by);
-
-                console.log(`[MARK-PAID] Credited ${reward} units to referrer ${existingProfile.referred_by}`);
-
-                // Record referral transaction
-                const refTxRef = 'REF_BONUS_' + userId + '_' + Date.now();
-                const { data: refTx } = await supabaseAdmin
-                    .from('transactions')
-                    .insert({
-                        reference: refTxRef,
-                        user_id: existingProfile.referred_by,
-                        amount_units: reward,
-                        status: 'success',
-                        metadata: { type: 'referral_bonus', source: userId }
-                    })
-                    .select()
-                    .single();
-
-                // Add referral record
-                await supabaseAdmin
-                    .from('referrals')
-                    .insert({
-                        referrer_id: existingProfile.referred_by,
-                        referred_user_id: userId,
-                        reward_units: reward,
-                        status: 'paid',
-                        awarded_tx_id: refTx?.id
-                    });
-
-                console.log(`[MARK-PAID] Referral bonus processed successfully`);
+            // Check for abuse
+            const abuseCheck = await checkReferralAbuse(existingProfile.referred_by, userId);
+            if (!abuseCheck.allowed) {
+                console.log(`[MARK-PAID] Referral bonus blocked: ${abuseCheck.reason}`);
             } else {
-                console.log(`[MARK-PAID] Referral bonus already paid for user ${userId}`);
-            }
-        }
+                // Check if referral bonus already paid
+                const { data: existingRef } = await supabaseAdmin
+                    .from('referrals')
+                    .select('id')
+                    .eq('referred_user_id', userId)
+                    .single();
+
+                if (!existingRef) {
+                    const reward = REFERRAL_REWARD_UNITS;
+
+                    // Get referrer's current wallet balance
+                    const { data: referrerWallet } = await supabaseAdmin
+                        .from('wallets')
+                        .select('balance_units')
+                        .eq('user_id', existingProfile.referred_by)
+                        .single();
+
+                    // Credit referrer wallet
+                    await supabaseAdmin
+                        .from('wallets')
+                        .update({
+                            balance_units: (referrerWallet?.balance_units || 0) + reward
+                        })
+                        .eq('user_id', existingProfile.referred_by);
+
+                    console.log(`[MARK-PAID] Credited ${reward} units to referrer ${existingProfile.referred_by}`);
+
+                    // Record referral transaction
+                    const refTxRef = 'REF_BONUS_' + userId + '_' + Date.now();
+                    const { data: refTx } = await supabaseAdmin
+                        .from('transactions')
+                        .insert({
+                            reference: refTxRef,
+                            user_id: existingProfile.referred_by,
+                            amount_units: reward,
+                            status: 'success',
+                            metadata: { type: 'referral_bonus', source: userId }
+                        })
+                        .select()
+                        .single();
+
+                    // Add referral record
+                    await supabaseAdmin
+                        .from('referrals')
+                        .insert({
+                            referrer_id: existingProfile.referred_by,
+                            referred_user_id: userId,
+                            reward_units: reward,
+                            status: 'paid',
+                            awarded_tx_id: refTx?.id
+                        });
+
+                    console.log(`[MARK-PAID] Referral bonus processed successfully`);
+                } else {
+                    console.log(`[MARK-PAID] Referral bonus already paid for user ${userId}`);
+                }
+            } // end abuseCheck.allowed else
+        } // end if referred_by
 
         res.json({ success: true, userId });
 
@@ -538,7 +1168,181 @@ app.post('/webhook/paystack', async (req, res) => {
 });
 
 // ===================================
-// TASK COMPLETION
+// TASK SYSTEM WITH ABUSE PREVENTION
+// ===================================
+
+// Get available tasks for user
+app.get('/tasks/available', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        // Get all active admin tasks
+        const { data: tasks, error } = await supabaseAdmin
+            .from('admin_tasks')
+            .select('*')
+            .eq('is_active', true)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Tasks fetch error:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        // Get user's completed/pending submissions
+        const { data: submissions } = await supabaseAdmin
+            .from('task_submissions')
+            .select('task_id, status')
+            .eq('user_id', userId);
+
+        const submissionMap = {};
+        submissions?.forEach(s => {
+            submissionMap[s.task_id] = s.status;
+        });
+
+        // Map tasks with completion status
+        const tasksWithStatus = (tasks || []).map(task => ({
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            type: task.task_type || 'social',
+            reward: task.reward_kes,
+            action_url: task.url,
+            completed: !!submissionMap[task.id],
+            status: submissionMap[task.id] || null
+        }));
+
+        res.json(tasksWithStatus);
+
+    } catch (err) {
+        console.error('Tasks error:', err);
+        res.status(500).json({ error: 'Failed to fetch tasks' });
+    }
+});
+
+// Complete a specific task
+app.post('/tasks/:taskId/complete', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const taskId = req.params.taskId;
+
+    try {
+        // Get task details
+        const { data: task } = await supabaseAdmin
+            .from('admin_tasks')
+            .select('*')
+            .eq('id', taskId)
+            .eq('is_active', true)
+            .single();
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found or inactive' });
+        }
+
+        // Check if already submitted
+        const { data: existingSubmission } = await supabaseAdmin
+            .from('task_submissions')
+            .select('id, status')
+            .eq('user_id', userId)
+            .eq('task_id', taskId)
+            .single();
+
+        if (existingSubmission) {
+            return res.json({
+                success: false,
+                message: existingSubmission.status === 'pending'
+                    ? 'Task already submitted, waiting for approval'
+                    : 'Task already completed'
+            });
+        }
+
+        // Create submission (pending approval)
+        const { error: submitError } = await supabaseAdmin
+            .from('task_submissions')
+            .insert({
+                user_id: userId,
+                task_id: taskId,
+                status: 'pending'
+            });
+
+        if (submitError) {
+            console.error('Task submission error:', submitError);
+            return res.status(500).json({ success: false, message: 'Failed to submit task' });
+        }
+
+        res.json({ success: true, message: 'Task submitted! Waiting for approval.' });
+
+    } catch (err) {
+        console.error('Task completion error:', err);
+        res.status(500).json({ success: false, message: 'Failed to complete task' });
+    }
+});
+
+// ===================================
+// REFERRAL ABUSE PREVENTION
+// ===================================
+
+// Abuse prevention middleware/checks embedded in mark-paid and webhooks:
+// 1. Self-referral blocking (already implemented in /auth/signup)
+// 2. Rate limiting for referral bonuses
+// 3. IP/device fingerprint tracking (future enhancement)
+// 4. Commission caps per period
+
+// Check for referral abuse
+async function checkReferralAbuse(referrerId, userId) {
+    const ABUSE_RULES = {
+        MAX_REFERRALS_PER_DAY: 10,
+        MAX_REFERRALS_PER_HOUR: 5,
+        MIN_MINUTES_BETWEEN_REFERRALS: 2
+    };
+
+    try {
+        const now = new Date();
+        const oneHourAgo = new Date(now - 60 * 60 * 1000);
+        const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+
+        // Get recent referrals by this referrer
+        const { data: recentReferrals, count } = await supabaseAdmin
+            .from('referrals')
+            .select('created_at', { count: 'exact' })
+            .eq('referrer_id', referrerId)
+            .gte('created_at', oneDayAgo.toISOString());
+
+        // Check daily limit
+        if (count >= ABUSE_RULES.MAX_REFERRALS_PER_DAY) {
+            console.log(`[ABUSE] Referrer ${referrerId} exceeded daily limit (${count})`);
+            return { allowed: false, reason: 'Daily referral limit exceeded' };
+        }
+
+        // Check hourly limit
+        const hourlyCount = recentReferrals?.filter(r =>
+            new Date(r.created_at) >= oneHourAgo
+        ).length || 0;
+
+        if (hourlyCount >= ABUSE_RULES.MAX_REFERRALS_PER_HOUR) {
+            console.log(`[ABUSE] Referrer ${referrerId} exceeded hourly limit (${hourlyCount})`);
+            return { allowed: false, reason: 'Hourly referral limit exceeded' };
+        }
+
+        // Check minimum time between referrals
+        if (recentReferrals && recentReferrals.length > 0) {
+            const lastReferral = new Date(recentReferrals[0].created_at);
+            const minutesSinceLastReferral = (now - lastReferral) / (60 * 1000);
+
+            if (minutesSinceLastReferral < ABUSE_RULES.MIN_MINUTES_BETWEEN_REFERRALS) {
+                console.log(`[ABUSE] Referrer ${referrerId} too fast (${minutesSinceLastReferral.toFixed(1)} min)`);
+                return { allowed: false, reason: 'Please wait before referring again' };
+            }
+        }
+
+        return { allowed: true };
+
+    } catch (err) {
+        console.error('Abuse check error:', err);
+        return { allowed: true }; // Fail open to not block legitimate users
+    }
+}
+
+// ===================================
+// LEGACY TASK COMPLETION (kept for compatibility)
 // ===================================
 
 app.post('/tasks/complete', authenticateToken, async (req, res) => {
@@ -1328,6 +2132,90 @@ app.post('/chapters/:id/progress', authenticateToken, async (req, res) => {
     }
 });
 
+// Mark chapter as complete (requires all tasks to be done)
+app.post('/chapters/:id/complete', authenticateToken, async (req, res) => {
+    const chapterId = req.params.id;
+    const userId = req.user.id;
+
+    try {
+        // 1. Get total tasks for chapter
+        const { count: totalTasks, error: countError } = await supabaseAdmin
+            .from('chapter_tasks')
+            .select('*', { count: 'exact', head: true })
+            .eq('chapter_id', chapterId);
+
+        if (countError) throw countError;
+
+        // 2. Get user's completed tasks count for this chapter
+        // We join or do a subquery. Supabase simple query:
+        // Get tasks IDs for chapter -> Check if they are in user_task_progress
+        const { data: chapterTasks } = await supabaseAdmin
+            .from('chapter_tasks')
+            .select('id')
+            .eq('chapter_id', chapterId);
+
+        const taskIds = chapterTasks.map(t => t.id);
+        let completedCount = 0;
+
+        if (taskIds.length > 0) {
+            const { count } = await supabaseAdmin
+                .from('user_task_progress')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId)
+                .in('task_id', taskIds);
+            completedCount = count;
+        }
+
+        if (completedCount < totalTasks) {
+            return res.status(400).json({
+                error: 'Incomplete tasks',
+                remaining: totalTasks - completedCount
+            });
+        }
+
+        // 3. Mark chapter as complete
+        // We need to append to the array. Supabase doesn't have effortless array_append via JS client usually,
+        // but we can read -> updated. Or use a stored procedure.
+        // Let's read, check uniqueness, and update.
+
+        // Get course_id first
+        const { data: chapter } = await supabaseAdmin
+            .from('chapters')
+            .select('course_id')
+            .eq('id', chapterId)
+            .single();
+
+        const { data: progress } = await supabaseAdmin
+            .from('chapter_progress')
+            .select('completed_chapters')
+            .eq('user_id', userId)
+            .eq('course_id', chapter.course_id)
+            .single();
+
+        let completed = progress?.completed_chapters || [];
+        if (!completed.includes(parseInt(chapterId))) {
+            completed.push(parseInt(chapterId));
+
+            const { error: updateError } = await supabaseAdmin
+                .from('chapter_progress')
+                .upsert({
+                    user_id: userId,
+                    course_id: chapter.course_id,
+                    completed_chapters: completed,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id, course_id' }); // Use unique constraint to find row
+
+            if (updateError) throw updateError;
+        }
+
+        res.json({ success: true, completed: true });
+
+    } catch (err) {
+        console.error('Chapter completion error:', err);
+        res.status(500).json({ error: 'Failed to complete chapter' });
+    }
+});
+
 // Get user's progress for a course
 app.get('/courses/:id/progress', authenticateToken, async (req, res) => {
     const courseId = req.params.id;
@@ -1349,8 +2237,153 @@ app.get('/courses/:id/progress', authenticateToken, async (req, res) => {
 });
 
 // ===================================
-// ADMIN CHAPTER ENDPOINTS
+// CHAPTER RESOURCES
 // ===================================
+
+app.get('/chapters/:id/resources', authenticateToken, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('chapter_resources')
+            .select('*')
+            .eq('chapter_id', req.params.id)
+            .order('order_num', { ascending: true });
+
+        if (error) throw error;
+        res.json(data || []);
+    } catch (err) {
+        console.error('Fetch chapter resources error:', err);
+        res.status(500).json({ error: 'Failed to fetch resources' });
+    }
+});
+
+app.post('/admin/chapters/:id/resources', authenticateToken, requireAdmin, async (req, res) => {
+    const { type, title, url, description } = req.body;
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('chapter_resources')
+            .insert({
+                chapter_id: parseInt(req.params.id),
+                type,
+                title,
+                url,
+                description
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, resource: data });
+    } catch (err) {
+        console.error('Add chapter resource error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/admin/chapter-resources/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { error } = await supabaseAdmin
+            .from('chapter_resources')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ===================================
+// CHAPTER TASKS
+// ===================================
+
+app.get('/chapters/:id/tasks', authenticateToken, async (req, res) => {
+    try {
+        // Get tasks
+        const { data: tasks, error } = await supabaseAdmin
+            .from('chapter_tasks')
+            .select('*')
+            .eq('chapter_id', req.params.id)
+            .order('order_num', { ascending: true });
+
+        if (error) throw error;
+
+        // Get user progress for these tasks
+        const { data: progress } = await supabaseAdmin
+            .from('user_task_progress')
+            .select('task_id')
+            .eq('user_id', req.user.id);
+
+        const completedTaskIds = new Set(progress?.map(p => p.task_id) || []);
+
+        const tasksWithStatus = tasks.map(t => ({
+            ...t,
+            completed: completedTaskIds.has(t.id)
+        }));
+
+        res.json(tasksWithStatus);
+    } catch (err) {
+        console.error('Fetch chapter tasks error:', err);
+        res.status(500).json({ error: 'Failed to fetch tasks' });
+    }
+});
+
+app.post('/admin/chapters/:id/tasks', authenticateToken, requireAdmin, async (req, res) => {
+    const { title, type, verification_data } = req.body;
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('chapter_tasks')
+            .insert({
+                chapter_id: parseInt(req.params.id),
+                title,
+                type: type || 'checkbox',
+                verification_data
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, task: data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/admin/tasks/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { error } = await supabaseAdmin
+            .from('chapter_tasks')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/chapters/:id/complete-task', authenticateToken, async (req, res) => {
+    const taskId = req.body.taskId;
+    const userId = req.user.id;
+
+    try {
+        const { error } = await supabaseAdmin
+            .from('user_task_progress')
+            .upsert({
+                user_id: userId,
+                task_id: taskId
+            }, { onConflict: 'user_id, task_id' });
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Complete task error:', err);
+        res.status(500).json({ error: 'Failed to complete task' });
+    }
+});
+
+// Admin Chapter Endpoints
 
 // Add chapter to course
 app.post('/admin/courses/:id/chapters', authenticateToken, requireAdmin, async (req, res) => {
@@ -1951,52 +2984,7 @@ async function processSuccessfulPayment(paystackData) {
 // ADMIN TASK MANAGEMENT
 // ===================================
 
-// Get all tasks (for users)
-app.get('/tasks/available', authenticateToken, async (req, res) => {
-    const userId = req.user.id;
-    try {
-        // 1. Get Active Tasks
-        const { data: tasks, error } = await supabaseAdmin
-            .from('admin_tasks')
-            .select('*')
-            .eq('is_active', true)
-            .order('created_at', { ascending: false });
 
-        if (error) {
-            console.error('Tasks fetch error:', error);
-            return res.status(500).json({ error: error.message });
-        }
-
-        // 2. Get User's Submissions for these tasks
-        const { data: submissions } = await supabaseAdmin
-            .from('task_submissions')
-            .select('task_id, status')
-            .eq('user_id', userId);
-
-        // 3. Map status to tasks
-        const subMap = {};
-        if (submissions) {
-            submissions.forEach(s => {
-                subMap[s.task_id] = s.status;
-            });
-        }
-
-        const formatted = tasks.map(t => ({
-            ...t,
-            // Normalizing keys for frontend
-            reward: t.reward_kes,
-            action_url: t.url,
-            // Status flags
-            status: subMap[t.id] || null,
-            completed: subMap[t.id] === 'approved' || subMap[t.id] === 'pending' // Consider pending as completed for UI to prevent re-submit
-        }));
-
-        res.json(formatted);
-    } catch (err) {
-        console.error('Tasks error:', err);
-        res.status(500).json({ error: 'Failed to fetch tasks' });
-    }
-});
 
 // Task Completion (Now requires Admin Approval)
 app.post('/tasks/:id/complete', authenticateToken, async (req, res) => {
@@ -2556,6 +3544,594 @@ app.get('/admin/stats', authenticateToken, requireAdmin, async (req, res) => {
     } catch (err) {
         console.error('Admin stats error:', err);
         res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+});
+
+// ===================================
+// COURSE BUNDLES API
+// ===================================
+
+// Get all published bundles
+app.get('/bundles', async (req, res) => {
+    try {
+        const { data: bundles, error } = await supabaseAdmin
+            .from('course_bundles')
+            .select(`
+                *,
+                bundle_courses (
+                    course_id,
+                    order_index,
+                    courses ( id, title, thumbnail_url, price )
+                )
+            `)
+            .eq('is_published', true)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        res.json(bundles || []);
+    } catch (err) {
+        console.error('Bundles fetch error:', err);
+        res.status(500).json({ error: 'Failed to fetch bundles' });
+    }
+});
+
+// Get single bundle details
+app.get('/bundles/:id', async (req, res) => {
+    try {
+        const { data: bundle, error } = await supabaseAdmin
+            .from('course_bundles')
+            .select(`
+                *,
+                bundle_courses (
+                    course_id,
+                    order_index,
+                    courses ( id, title, description, thumbnail_url, price, duration_hours )
+                )
+            `)
+            .eq('id', req.params.id)
+            .single();
+
+        if (error) throw error;
+
+        res.json(bundle);
+    } catch (err) {
+        console.error('Bundle fetch error:', err);
+        res.status(500).json({ error: 'Failed to fetch bundle' });
+    }
+});
+
+// Admin: Create bundle
+app.post('/admin/bundles', authenticateToken, requireAdmin, async (req, res) => {
+    const { title, description, thumbnail_url, bundle_price, course_ids } = req.body;
+
+    if (!title || !bundle_price || !course_ids?.length) {
+        return res.status(400).json({ error: 'Title, price, and courses required' });
+    }
+
+    try {
+        // Get original prices of courses
+        const { data: courses } = await supabaseAdmin
+            .from('courses')
+            .select('id, price')
+            .in('id', course_ids);
+
+        const originalPrice = courses.reduce((sum, c) => sum + (c.price || 0), 0);
+
+        // Create bundle
+        const { data: bundle, error: bundleError } = await supabaseAdmin
+            .from('course_bundles')
+            .insert({
+                title,
+                description,
+                thumbnail_url,
+                original_price: originalPrice,
+                bundle_price: parseInt(bundle_price),
+                created_by: req.user.id,
+                is_published: true
+            })
+            .select()
+            .single();
+
+        if (bundleError) throw bundleError;
+
+        // Add courses to bundle
+        const bundleCourses = course_ids.map((courseId, index) => ({
+            bundle_id: bundle.id,
+            course_id: courseId,
+            order_index: index
+        }));
+
+        await supabaseAdmin.from('bundle_courses').insert(bundleCourses);
+
+        res.json({ success: true, bundle });
+    } catch (err) {
+        console.error('Bundle create error:', err);
+        res.status(500).json({ error: 'Failed to create bundle' });
+    }
+});
+
+// Admin: Update bundle
+app.put('/admin/bundles/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { title, description, thumbnail_url, bundle_price, is_published, course_ids } = req.body;
+
+    try {
+        const updates = {};
+        if (title) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (thumbnail_url !== undefined) updates.thumbnail_url = thumbnail_url;
+        if (bundle_price !== undefined) updates.bundle_price = parseInt(bundle_price);
+        if (is_published !== undefined) updates.is_published = is_published;
+
+        // Recalculate original price if courses changed
+        if (course_ids?.length) {
+            const { data: courses } = await supabaseAdmin
+                .from('courses')
+                .select('id, price')
+                .in('id', course_ids);
+            updates.original_price = courses.reduce((sum, c) => sum + (c.price || 0), 0);
+
+            // Replace bundle courses
+            await supabaseAdmin.from('bundle_courses').delete().eq('bundle_id', req.params.id);
+            const bundleCourses = course_ids.map((courseId, index) => ({
+                bundle_id: parseInt(req.params.id),
+                course_id: courseId,
+                order_index: index
+            }));
+            await supabaseAdmin.from('bundle_courses').insert(bundleCourses);
+        }
+
+        const { error } = await supabaseAdmin
+            .from('course_bundles')
+            .update(updates)
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Bundle update error:', err);
+        res.status(500).json({ error: 'Failed to update bundle' });
+    }
+});
+
+// Admin: Delete bundle
+app.delete('/admin/bundles/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { error } = await supabaseAdmin
+            .from('course_bundles')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Bundle delete error:', err);
+        res.status(500).json({ error: 'Failed to delete bundle' });
+    }
+});
+
+// Purchase bundle
+app.post('/bundles/:id/purchase', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const bundleId = parseInt(req.params.id);
+
+    try {
+        // Check if already purchased
+        const { data: existing } = await supabaseAdmin
+            .from('bundle_purchases')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('bundle_id', bundleId)
+            .single();
+
+        if (existing) {
+            return res.status(400).json({ error: 'Bundle already purchased' });
+        }
+
+        // Get bundle with courses
+        const { data: bundle } = await supabaseAdmin
+            .from('course_bundles')
+            .select(`
+                *,
+                bundle_courses ( course_id )
+            `)
+            .eq('id', bundleId)
+            .single();
+
+        if (!bundle) {
+            return res.status(404).json({ error: 'Bundle not found' });
+        }
+
+        // Generate payment reference
+        const reference = `BUNDLE_${bundleId}_${Date.now()}_${userId}`;
+
+        res.json({
+            reference,
+            amount: bundle.bundle_price,
+            key: process.env.PAYSTACK_PUBLIC_KEY
+        });
+    } catch (err) {
+        console.error('Bundle purchase error:', err);
+        res.status(500).json({ error: 'Failed to initiate bundle purchase' });
+    }
+});
+
+// ===================================
+// REVIEWS API
+// ===================================
+
+// Get course reviews (public, approved only)
+app.get('/courses/:courseId/reviews', async (req, res) => {
+    try {
+        const { data: reviews, error } = await supabaseAdmin
+            .from('course_reviews')
+            .select(`
+                id, rating, title, review_text, created_at,
+                profiles ( email )
+            `)
+            .eq('course_id', req.params.courseId)
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Get aggregate stats
+        const { data: stats } = await supabaseAdmin
+            .from('course_reviews')
+            .select('rating')
+            .eq('course_id', req.params.courseId)
+            .eq('status', 'approved');
+
+        const totalReviews = stats?.length || 0;
+        const averageRating = totalReviews > 0
+            ? (stats.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1)
+            : 0;
+
+        res.json({
+            reviews: (reviews || []).map(r => ({
+                ...r,
+                userEmail: r.profiles?.email?.split('@')[0] + '@...'
+            })),
+            stats: {
+                totalReviews,
+                averageRating: parseFloat(averageRating)
+            }
+        });
+    } catch (err) {
+        console.error('Reviews fetch error:', err);
+        res.status(500).json({ error: 'Failed to fetch reviews' });
+    }
+});
+
+// Submit review (authenticated, must have purchased)
+app.post('/courses/:courseId/reviews', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const courseId = parseInt(req.params.courseId);
+    const { rating, title, review_text } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: 'Rating must be 1-5' });
+    }
+
+    try {
+        // Verify purchase
+        const { data: purchase } = await supabaseAdmin
+            .from('course_purchases')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('course_id', courseId)
+            .single();
+
+        if (!purchase) {
+            return res.status(403).json({ error: 'You must purchase this course to review it' });
+        }
+
+        // Check if already reviewed
+        const { data: existing } = await supabaseAdmin
+            .from('course_reviews')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('course_id', courseId)
+            .single();
+
+        if (existing) {
+            return res.status(400).json({ error: 'You have already reviewed this course' });
+        }
+
+        // Create review
+        const { data: review, error } = await supabaseAdmin
+            .from('course_reviews')
+            .insert({
+                user_id: userId,
+                course_id: courseId,
+                rating,
+                title,
+                review_text,
+                status: 'pending'
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({
+            success: true,
+            review,
+            message: 'Review submitted! It will appear after admin approval.'
+        });
+    } catch (err) {
+        console.error('Review submit error:', err);
+        res.status(500).json({ error: 'Failed to submit review' });
+    }
+});
+
+// Admin: Get all reviews for moderation
+app.get('/admin/reviews', authenticateToken, requireAdmin, async (req, res) => {
+    const status = req.query.status || 'pending';
+
+    try {
+        const { data: reviews, error } = await supabaseAdmin
+            .from('course_reviews')
+            .select(`
+                *,
+                profiles ( email ),
+                courses ( title )
+            `)
+            .eq('status', status)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        res.json(reviews || []);
+    } catch (err) {
+        console.error('Admin reviews error:', err);
+        res.status(500).json({ error: 'Failed to fetch reviews' });
+    }
+});
+
+// Admin: Moderate review
+app.put('/admin/reviews/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { status, admin_notes } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Status must be approved or rejected' });
+    }
+
+    try {
+        const { error } = await supabaseAdmin
+            .from('course_reviews')
+            .update({ status, admin_notes })
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Review moderate error:', err);
+        res.status(500).json({ error: 'Failed to moderate review' });
+    }
+});
+
+// ===================================
+// AFFILIATE PROMO TOOLS API
+// ===================================
+
+// Generate deep link for specific course
+app.get('/referrals/deep-link/:courseId', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('referral_code')
+            .eq('id', userId)
+            .single();
+
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const deepLink = `${baseUrl}/course-detail.html?id=${req.params.courseId}&ref=${profile.referral_code}`;
+
+        res.json({
+            deepLink,
+            referralCode: profile.referral_code,
+            courseId: req.params.courseId
+        });
+    } catch (err) {
+        console.error('Deep link error:', err);
+        res.status(500).json({ error: 'Failed to generate deep link' });
+    }
+});
+
+// Generate QR code data URL
+app.get('/referrals/qr-code', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const courseId = req.query.courseId;
+
+    try {
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('referral_code')
+            .eq('id', userId)
+            .single();
+
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        let targetUrl;
+
+        if (courseId) {
+            targetUrl = `${baseUrl}/course-detail.html?id=${courseId}&ref=${profile.referral_code}`;
+        } else {
+            targetUrl = `${baseUrl}/signup.html?ref=${profile.referral_code}`;
+        }
+
+        // Generate QR code URL using QR Server API (free, no key needed)
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+
+        res.json({
+            qrCodeUrl: qrUrl,
+            targetUrl,
+            referralCode: profile.referral_code
+        });
+    } catch (err) {
+        console.error('QR code error:', err);
+        res.status(500).json({ error: 'Failed to generate QR code' });
+    }
+});
+
+// Get promo materials (captions and tips)
+app.get('/referrals/promo-materials', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('referral_code')
+            .eq('id', userId)
+            .single();
+
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const referralLink = `${baseUrl}/signup.html?ref=${profile.referral_code}`;
+
+        // Pre-written captions for social media
+        const captions = [
+            {
+                platform: 'WhatsApp',
+                text: `🚀 Just discovered an amazing platform for learning digital skills and earning commissions!\n\nJoin me on Earnio and start your journey:\n${referralLink}\n\n#Earnio #DigitalSkills #PassiveIncome`
+            },
+            {
+                platform: 'Twitter/X',
+                text: `Want to learn AI, YouTube Automation, and more while earning? 💰\n\nCheck out Earnio - premium courses + referral commissions!\n\nSign up: ${referralLink}`
+            },
+            {
+                platform: 'Instagram',
+                text: `💡 Level up your income with digital skills!\n\nI'm using Earnio to learn and earn. Their courses are 🔥 and I get commissions when my friends join.\n\nLink in bio or DM me for the signup link!\n\n#DigitalWealth #LearnAndEarn #Earnio`
+            },
+            {
+                platform: 'Facebook',
+                text: `Hey friends! 👋\n\nI've been learning some incredible digital skills on Earnio and wanted to share it with you.\n\nThey have courses on AI, YouTube automation, Shopify, and more. Plus, you can earn 20-40% commission by referring others!\n\nCheck it out: ${referralLink}`
+            }
+        ];
+
+        const tips = [
+            'Share your referral link in your WhatsApp status daily',
+            'Create short video reviews of courses you\'ve taken',
+            'Target friends who are interested in side hustles',
+            'Share your earnings screenshots (with permission)',
+            'Join online communities and share valuable tips with your link'
+        ];
+
+        res.json({
+            referralCode: profile.referral_code,
+            referralLink,
+            captions,
+            tips
+        });
+    } catch (err) {
+        console.error('Promo materials error:', err);
+        res.status(500).json({ error: 'Failed to fetch promo materials' });
+    }
+});
+
+// ===================================
+// ADMIN ANALYTICS API
+// ===================================
+
+app.get('/admin/analytics/overview', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        // Revenue this month
+        const { data: monthlyTxns } = await supabaseAdmin
+            .from('transactions')
+            .select('amount_units')
+            .eq('status', 'success')
+            .gte('created_at', startOfMonth.toISOString())
+            .in('metadata->>type', ['course_purchase', 'signup']);
+
+        const monthlyRevenue = (monthlyTxns || []).reduce((sum, t) => sum + (t.amount_units || 0), 0);
+
+        // New users this month
+        const { count: newUsers } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', startOfMonth.toISOString());
+
+        // Course purchases this month
+        const { count: coursePurchases } = await supabaseAdmin
+            .from('course_purchases')
+            .select('*', { count: 'exact', head: true })
+            .gte('purchased_at', startOfMonth.toISOString());
+
+        // Referral conversion rate
+        const { count: totalReferrals } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .not('referred_by', 'is', null);
+
+        const { count: paidReferrals } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .not('referred_by', 'is', null)
+            .eq('is_paid', true);
+
+        const conversionRate = totalReferrals > 0 ? ((paidReferrals / totalReferrals) * 100).toFixed(1) : 0;
+
+        res.json({
+            monthlyRevenueKES: monthlyRevenue / PAYSTACK_UNIT,
+            newUsersThisMonth: newUsers || 0,
+            coursePurchasesThisMonth: coursePurchases || 0,
+            referralConversionRate: parseFloat(conversionRate),
+            period: startOfMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        });
+    } catch (err) {
+        console.error('Analytics overview error:', err);
+        res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+});
+
+app.get('/admin/analytics/top-courses', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { data: purchases } = await supabaseAdmin
+            .from('course_purchases')
+            .select('course_id, amount_paid');
+
+        // Aggregate by course
+        const courseStats = {};
+        purchases?.forEach(p => {
+            if (!courseStats[p.course_id]) {
+                courseStats[p.course_id] = { sales: 0, revenue: 0 };
+            }
+            courseStats[p.course_id].sales += 1;
+            courseStats[p.course_id].revenue += p.amount_paid || 0;
+        });
+
+        // Get course titles
+        const courseIds = Object.keys(courseStats);
+        const { data: courses } = await supabaseAdmin
+            .from('courses')
+            .select('id, title')
+            .in('id', courseIds.map(id => parseInt(id)));
+
+        const courseMap = {};
+        courses?.forEach(c => courseMap[c.id] = c.title);
+
+        // Build sorted list
+        const topCourses = Object.entries(courseStats)
+            .map(([courseId, stats]) => ({
+                courseId,
+                title: courseMap[courseId] || 'Unknown',
+                sales: stats.sales,
+                revenueKES: stats.revenue / PAYSTACK_UNIT
+            }))
+            .sort((a, b) => b.sales - a.sales)
+            .slice(0, 10);
+
+        res.json(topCourses);
+    } catch (err) {
+        console.error('Top courses error:', err);
+        res.status(500).json({ error: 'Failed to fetch top courses' });
     }
 });
 

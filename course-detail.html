@@ -555,6 +555,19 @@
                         </div>
                     </div>
                 ` : ''}
+
+                <!-- Reviews Section -->
+                <div class="section" id="reviewsSection">
+                    <div class="section-header">
+                        <i class="fas fa-star"></i>
+                        <h3>Reviews</h3>
+                    </div>
+                    <div id="reviewsContent">
+                        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            <i class="fas fa-spinner fa-spin"></i> Loading reviews...
+                        </div>
+                    </div>
+                </div>
             `;
 
             document.getElementById('pageContent').innerHTML = html;
@@ -571,7 +584,7 @@
                 actionBtn.className = 'btn-action btn-start';
                 actionBtn.innerHTML = '<i class="fas fa-play"></i> Start Learning';
             } else {
-                stickyPrice.innerHTML = `KES ${priceKES}`;
+                stickyPrice.innerHTML = `KES ${priceKES} `;
                 actionBtn.className = 'btn-action btn-unlock';
                 actionBtn.innerHTML = '<i class="fas fa-lock-open"></i> Unlock Now';
             }
@@ -588,7 +601,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
             try {
-                const res = await fetch(`/courses/${courseId}/purchase`, {
+                const res = await fetch(`/ courses / ${courseId}/purchase`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
                 });
@@ -649,6 +662,122 @@
         }
 
         loadCourse();
+
+        // Load reviews after course loads
+        async function loadReviews() {
+            try {
+                const res = await fetch(`/courses/${courseId}/reviews`);
+                const data = await res.json();
+
+                const reviewsContainer = document.getElementById('reviewsContent');
+                if (!reviewsContainer) return;
+
+                const { reviews, stats } = data;
+
+                let html = '';
+
+                // Stats summary
+                if (stats.totalReviews > 0) {
+                    html += `
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 16px; background: var(--surface-color); border-radius: 14px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: 800; color: var(--primary-color);">${stats.averageRating}</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;">${stats.totalReviews} reviews</div>
+                            </div>
+                            <div style="display: flex; gap: 4px;">
+                                ${[1, 2, 3, 4, 5].map(i => `<i class="fas fa-star" style="color: ${i <= Math.round(stats.averageRating) ? '#FFD700' : 'var(--border-color)'};"></i>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Show review form if user owns the course
+                if (hasAccess) {
+                    html += `
+                        <div style="background: var(--surface-color); border-radius: 14px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                            <h4 style="margin-bottom: 12px;">Leave a Review</h4>
+                            <div id="starRating" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                ${[1, 2, 3, 4, 5].map(i => `<i class="fas fa-star" data-rating="${i}" onclick="selectRating(${i})" style="font-size: 1.5rem; cursor: pointer; color: var(--border-color); transition: color 0.2s;"></i>`).join('')}
+                            </div>
+                            <input type="text" id="reviewTitle" placeholder="Review title" style="width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-primary); margin-bottom: 10px;">
+                            <textarea id="reviewText" placeholder="Share your experience..." rows="3" style="width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-primary); resize: none;"></textarea>
+                            <button onclick="submitReview()" style="margin-top: 12px; padding: 12px 24px; background: var(--primary-color); color: #000; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">Submit Review</button>
+                        </div>
+                    `;
+                }
+
+                // Reviews list
+                if (reviews.length > 0) {
+                    reviews.forEach(r => {
+                        html += `
+                            <div style="background: var(--surface-color); border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 0.95rem;">${r.title || 'Great course!'}</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${r.userEmail}</div>
+                                    </div>
+                                    <div style="display: flex; gap: 2px;">
+                                        ${[1, 2, 3, 4, 5].map(i => `<i class="fas fa-star" style="font-size: 0.7rem; color: ${i <= r.rating ? '#FFD700' : 'var(--border-color)'}"></i>`).join('')}
+                                    </div>
+                                </div>
+                                ${r.review_text ? `<p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">${r.review_text}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                } else if (!hasAccess) {
+                    html += `<div style="text-align: center; padding: 24px; color: var(--text-secondary);">No reviews yet. Be the first to review!</div>`;
+                }
+
+                reviewsContainer.innerHTML = html;
+            } catch (err) {
+                console.error('Failed to load reviews:', err);
+                document.getElementById('reviewsContent').innerHTML = '<div style="color: var(--text-secondary); padding: 20px; text-align: center;">Could not load reviews</div>';
+            }
+        }
+
+        let selectedRating = 0;
+        function selectRating(rating) {
+            selectedRating = rating;
+            document.querySelectorAll('#starRating i').forEach((star, i) => {
+                star.style.color = i < rating ? '#FFD700' : 'var(--border-color)';
+            });
+        }
+
+        async function submitReview() {
+            if (!selectedRating) {
+                alert('Please select a rating');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/courses/${courseId}/reviews`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        rating: selectedRating,
+                        title: document.getElementById('reviewTitle').value,
+                        review_text: document.getElementById('reviewText').value
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('Review submitted! It will appear after approval.');
+                    loadReviews();
+                } else {
+                    alert(data.error || 'Failed to submit review');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to submit review');
+            }
+        }
+
+        // Load reviews after render
+        setTimeout(loadReviews, 500);
     </script>
 </body>
 

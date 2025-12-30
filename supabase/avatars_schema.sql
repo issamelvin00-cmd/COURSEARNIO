@@ -1,0 +1,4 @@
+-- Add profile fields
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT 'owl';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;

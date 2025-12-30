@@ -7,24 +7,19 @@
     <title>Sign Up - Earnio</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="earnio-design-system.css">
     <style>
         :root {
-            --bg-color: #000000;
-            --surface-color: #141414;
-            --primary-color: #F59E0B;
-            --primary-light: #FBBF24;
-            --primary-dim: rgba(245, 158, 11, 0.12);
-            --text-primary: #FAFAFA;
-            --text-secondary: #A1A1AA;
-            --border-color: #27272A;
-            --accent-green: #10B981;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --bg-color: #0A0A0A;
+            --surface-color: #161616;
+            --primary-color: #CCFF00;
+            --primary-light: #9EFF00;
+            --primary-dim: rgba(204, 255, 0, 0.1);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-green: #00FF88;
+            --accent-cyan: #00D9FF;
         }
 
         body {
@@ -35,18 +30,18 @@
             justify-content: center;
             padding: 24px;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         body::before {
             content: '';
             position: absolute;
-            top: -200px;
+            top: -300px;
             left: 50%;
             transform: translateX(-50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(204, 255, 0, 0.08) 0%, rgba(168, 85, 247, 0.04) 40%, transparent 60%);
             pointer-events: none;
         }
 
@@ -61,25 +56,26 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 48px;
+            gap: 14px;
+            margin-bottom: 40px;
         }
 
         .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            border-radius: 14px;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-green));
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: #000;
+            box-shadow: 0 0 30px rgba(204, 255, 0, 0.25);
         }
 
         .logo-text {
-            font-size: 2rem;
-            font-weight: 800;
+            font-size: 2.2rem;
+            font-weight: 900;
             color: var(--text-primary);
             letter-spacing: -1px;
         }
@@ -87,20 +83,34 @@
         .auth-card {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px;
+            border-radius: 28px;
+            padding: 44px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 40px;
+            right: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            opacity: 0.4;
         }
 
         .auth-header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
         }
 
         .auth-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
+            font-size: 1.85rem;
+            font-weight: 800;
             color: var(--text-primary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
         }
 
         .auth-header p {
@@ -109,12 +119,13 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .form-group label {
-            display: block;
-            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
             color: var(--text-secondary);
             font-size: 0.9rem;
             font-weight: 500;
@@ -126,21 +137,23 @@
 
         .input-wrapper i {
             position: absolute;
-            left: 16px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
             font-size: 1rem;
+            transition: color 0.2s;
         }
 
         input {
             width: 100%;
-            padding: 16px 16px 16px 48px;
-            border-radius: 14px;
+            padding: 18px 18px 18px 52px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
-            background: var(--bg-color);
+            background: rgba(255, 255, 255, 0.03);
             color: var(--text-primary);
             font-size: 1rem;
+            font-family: inherit;
             outline: none;
             transition: all 0.25s ease;
         }
@@ -148,50 +161,60 @@
         input:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px var(--primary-dim);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        input:focus+i,
+        .input-wrapper:focus-within i {
+            color: var(--primary-color);
         }
 
         input::placeholder {
-            color: var(--text-secondary);
+            color: #6B7280;
         }
 
         .referral-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 600;
             color: var(--accent-green);
-            background: rgba(16, 185, 129, 0.1);
-            padding: 4px 10px;
-            border-radius: 6px;
-            margin-left: 8px;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 5px 12px;
+            border-radius: 50px;
+            margin-left: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
         }
 
         .btn-primary {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
             background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             border: none;
-            border-radius: 14px;
+            border-radius: 16px;
             color: #000;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 8px;
+            margin-top: 12px;
+            box-shadow: 0 4px 20px rgba(204, 255, 0, 0.2);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(204, 255, 0, 0.35);
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .auth-footer {
             text-align: center;
-            margin-top: 28px;
+            margin-top: 32px;
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
@@ -200,10 +223,11 @@
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 600;
+            transition: opacity 0.2s;
         }
 
         .auth-footer a:hover {
-            text-decoration: underline;
+            opacity: 0.8;
         }
 
         .back-link {
@@ -213,12 +237,13 @@
             color: var(--text-secondary);
             text-decoration: none;
             font-size: 0.9rem;
-            margin-bottom: 24px;
-            transition: color 0.2s;
+            margin-bottom: 28px;
+            transition: all 0.2s;
         }
 
         .back-link:hover {
-            color: var(--text-primary);
+            color: var(--primary-color);
+            transform: translateX(-4px);
         }
 
         .terms {
@@ -226,12 +251,57 @@
             color: var(--text-secondary);
             text-align: center;
             margin-top: 20px;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
         .terms a {
             color: var(--primary-color);
             text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .terms a:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+                align-items: flex-start;
+                padding-top: 40px;
+            }
+
+            .auth-card {
+                padding: 32px 24px;
+                border-radius: 24px;
+            }
+
+            .logo {
+                margin-bottom: 32px;
+            }
+
+            .logo-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+                border-radius: 14px;
+            }
+
+            .logo-text {
+                font-size: 1.8rem;
+            }
+
+            .auth-header h1 {
+                font-size: 1.5rem;
+            }
+
+            input {
+                padding: 16px 16px 16px 48px;
+            }
+
+            .btn-primary {
+                padding: 16px;
+            }
         }
     </style>
     <link rel="stylesheet" href="responsive.css">
@@ -295,11 +365,36 @@
     </div>
 
     <script>
-        // Auto-fill referral code from URL
+        // ====== REFERRAL TRACKING WITH COOKIE BACKUP ======
+
+        // Cookie helper functions
+        function setCookie(name, value, days) {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+        }
+
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
+        // Get referral code from URL or cookie
         const urlParams = new URLSearchParams(window.location.search);
-        const ref = urlParams.get('ref');
-        if (ref) {
-            document.getElementById('referralCode').value = ref;
+        const urlRef = urlParams.get('ref');
+        const cookieRef = getCookie('earnio_ref');
+
+        // Prefer URL param, fallback to cookie
+        const referralCode = urlRef || cookieRef || '';
+
+        // Store in cookie for 30 days (in case user doesn't sign up immediately)
+        if (urlRef) {
+            setCookie('earnio_ref', urlRef, 30);
+            console.log('Referral code saved to cookie:', urlRef);
+        }
+
+        // Auto-fill and show badge
+        if (referralCode) {
+            document.getElementById('referralCode').value = referralCode;
             document.getElementById('refBadge').style.display = 'inline-flex';
         }
 
@@ -307,17 +402,28 @@
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const referralCode = document.getElementById('referralCode').value;
+            const refCode = document.getElementById('referralCode').value;
+
+            // Also send cookie ref as backup
+            const cookieRefCode = getCookie('earnio_ref');
 
             try {
                 const res = await fetch('/auth/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, referralCode })
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        referralCode: refCode,
+                        cookieReferralCode: cookieRefCode  // Backup
+                    })
                 });
                 const data = await res.json();
 
                 if (res.ok) {
+                    // Clear referral cookie after successful signup
+                    setCookie('earnio_ref', '', -1);
+
                     localStorage.setItem('token', data.token);
                     if (data.needsPayment) {
                         window.location.href = 'pay_new.html';
