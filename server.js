@@ -487,10 +487,11 @@ app.get('/dashboard/data', authenticateToken, async (req, res) => {
             .single();
 
         // Get referrals
+        // Get referrals (from profiles)
         const { data: referrals } = await supabaseAdmin
-            .from('referrals')
-            .select('*')
-            .eq('referrer_id', userId);
+            .from('profiles')
+            .select('email, created_at, is_paid')
+            .eq('referred_by', userId);
 
         // Get Pending Task Earnings
         const { data: pendingSubmissions } = await supabaseAdmin
