@@ -1412,7 +1412,7 @@ You can still use HTML tags if needed, but plain text works great!"></textarea>
         async function deleteChapterTask(id) {
             if (!confirm('Remove this task?')) return;
             try {
-                await fetch(`/admin/tasks/${id}`, {
+                await fetch(`/admin/chapter-tasks/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

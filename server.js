@@ -2349,7 +2349,7 @@ app.post('/admin/chapters/:id/tasks', authenticateToken, requireAdmin, async (re
     }
 });
 
-app.delete('/admin/tasks/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/admin/chapter-tasks/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { error } = await supabaseAdmin
             .from('chapter_tasks')
