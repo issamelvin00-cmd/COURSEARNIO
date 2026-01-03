@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="earnio-design-system.css">
     <link rel="stylesheet" href="responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #0A0A0A;
@@ -99,6 +100,52 @@
             height: 1px;
             background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
             opacity: 0.4;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: 12px;
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: 12px;
+        }
+
+        .btn-google {
+            width: 100%;
+            padding: 14px;
+            background: #fff;
+            border: none;
+            border-radius: 16px;
+            color: #000;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-google:hover {
+            background: #f1f1f1;
+            transform: translateY(-2px);
         }
 
         .auth-header {
@@ -352,6 +399,14 @@
                 </p>
             </form>
 
+            <div class="divider">OR</div>
+
+            <button id="googleSignup" class="btn-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"
+                    alt="Google icon">
+                Sign up with Google
+            </button>
+
             <div class="auth-footer">
                 Already have an account? <a href="login.html">Sign in</a>
             </div>
@@ -428,10 +483,59 @@
                     alert(data.message || 'Signup failed');
                 }
             } catch (err) {
-                console.error(err);
                 alert('Connection error: ' + err.message + '\nEnsure server is running on port 3000.');
             }
         });
+
+        // --- Google OAuth Logic ---
+        let supabaseClient;
+        async function initSupabase() {
+            try {
+                const res = await fetch('/auth/config');
+                const config = await res.json();
+                supabaseClient = supabase.createClient(config.url, config.key);
+                checkOAuthSession();
+            } catch (err) {
+                console.error('Supabase init failed', err);
+            }
+        }
+
+        async function checkOAuthSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                // Get referral code (if any)
+                const refCode = document.getElementById('referralCode').value || getCookie('earnio_ref');
+
+                // Verify with backend
+                const res = await fetch('/auth/oauth-check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: session.access_token,
+                        referralCode: refCode
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    setCookie('earnio_ref', '', -1); // Clear ref cookie
+                    localStorage.setItem('token', session.access_token);
+                    if (data.needsPayment) window.location.href = 'pay_new.html';
+                    else window.location.href = 'dashboard.html';
+                }
+            }
+        }
+
+        document.getElementById('googleSignup').addEventListener('click', async () => {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/signup.html'
+                }
+            });
+            if (error) alert(error.message);
+        });
+
+        initSupabase();
     </script>
 </body>
 

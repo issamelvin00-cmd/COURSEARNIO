@@ -62,7 +62,8 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 60%;
+    max-width: 75%;
+    /* Increased from 60% */
 }
 
 .global-progress {
@@ -479,21 +480,28 @@ body {
 
     body,
     html {
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100%;
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
     .reader-container {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    .progress-header {
+        padding: 0 12px;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .reader-content {
         padding: 24px 16px;
-        width: 100%;
-        max-width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
         overflow-wrap: break-word;
         word-wrap: break-word;
     }
@@ -523,5 +531,20 @@ body {
         white-space: pre-wrap;
         /* Wrap code if needed */
         word-break: break-all;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-track {
+        display: none !important;
+    }
+
+    .global-progress {
+        gap: 4px;
+    }
+
+    .course-info {
+        max-width: 80% !important;
+        font-size: 0.85rem;
     }
 }

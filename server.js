@@ -435,6 +435,96 @@ app.post('/auth/login', async (req, res) => {
     }
 });
 
+// NEW: Provide Supabase config to frontend
+app.get('/auth/config', (req, res) => {
+    res.json({
+        url: process.env.SUPABASE_URL,
+        key: process.env.SUPABASE_ANON_KEY
+    });
+});
+
+// NEW: Post-OAuth Check (Finalize profile for Google users)
+app.post('/auth/oauth-check', async (req, res) => {
+    const { token, referralCode } = req.body;
+
+    if (!token) return res.status(401).json({ message: 'No token provided' });
+
+    try {
+        // 1. Get user from Supabase using provided token
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ message: 'Invalid token' });
+
+        const userId = user.id;
+        const email = user.email;
+
+        // 2. Check if profile exists
+        const { data: profile, error: profileGetError } = await supabaseAdmin
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (profile) {
+            // User exists, return status
+            return res.json({
+                success: true,
+                needsPayment: !profile.is_paid,
+                user: { id: userId, email: profile.email }
+            });
+        }
+
+        // 3. New User - Handle Registration
+        console.log(`[OAUTH] Registering new user: ${email}`);
+
+        const userRefCode = 'USER' + Date.now().toString().slice(-6);
+        let referrerId = null;
+
+        if (referralCode) {
+            const { data: referrer } = await supabaseAdmin
+                .from('profiles')
+                .select('id')
+                .eq('referral_code', referralCode)
+                .single();
+            if (referrer && referrer.id !== userId) {
+                referrerId = referrer.id;
+            }
+        }
+
+        // Check if first user
+        const { count } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true });
+        const isAdmin = count === 0;
+
+        // Create profile
+        const { error: insertError } = await supabaseAdmin
+            .from('profiles')
+            .insert({
+                id: userId,
+                email,
+                referral_code: userRefCode,
+                referred_by: referrerId,
+                is_admin: isAdmin,
+                is_paid: isAdmin // Admi skip payment
+            });
+
+        if (insertError) throw insertError;
+
+        // Create wallet
+        await supabaseAdmin.from('wallets').insert({ user_id: userId });
+
+        res.json({
+            success: true,
+            needsPayment: !isAdmin,
+            user: { id: userId, email, referralCode: userRefCode }
+        });
+
+    } catch (err) {
+        console.error('OAuth Check Error:', err);
+        res.status(500).json({ message: 'Verification failed' });
+    }
+});
+
 app.post('/auth/update-password', authenticateToken, async (req, res) => {
     const { newPassword } = req.body;
 
